@@ -173,8 +173,15 @@ class Database {
     }
   }
 
-  add(item) {
-    this.databaseStore.unshift(item)
+  add(addItem) {
+    this.databaseStore.unshift(addItem)
+
+    // Save database to disk
+    this.saveToDisk()
+  }
+
+  remove(removeItem) {
+    this.databaseStore = this.databaseStore.filter((item) => item !== removeItem)
 
     // Save database to disk
     this.saveToDisk()
@@ -266,6 +273,7 @@ const downloadFromURL = (req, res) => {
     return
   }
 
+  // Detect if video already exists
   let videoItem = videoDatabase.findByKey('url', req.body.url)
   if(!!videoItem && fs.existsSync(path.join(videoDir, videoItem.filename)
 )) {
@@ -293,6 +301,7 @@ const downloadFromURL = (req, res) => {
     { cwd: __dirname }
   )
 
+
   // info available to the callbacks in this execution context
   const videoDownload = {
     'video': video,
@@ -300,13 +309,6 @@ const downloadFromURL = (req, res) => {
     'size': 0,
     'progress': 0
   }
-
-  youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, function(err, files) {
-    // if (err) throw err;
-    if (err) console.error(err);
-
-    console.log('thumbnail file downloaded:', files);
-  });
 
   // Will be called when the download starts.
   video.on('info', function(info) {
@@ -319,36 +321,34 @@ const downloadFromURL = (req, res) => {
 
     let videoID = uuidgen()
     console.log('videoID: ' + videoID)
-    console.log('filename: ' + info._filename)
 
-    // Add to video database
-    videoDatabase.add(new VideoItem(videoID, req.body.url, info.title, info._filename))
+    // Create item that will go into database
+    let videoItem = new VideoItem(videoID, req.body.url, info.title, info._filename)
 
     // Add to global download queue for other requests / execution contexts
+    videoDownload.videoItem = videoItem
     videoDownload.videoID = videoID
     videoDownload.filename = info._filename
     downloadQueue.push(videoDownload)
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
 
+    // save video file
+    video.pipe(fs.createWriteStream(path.join(videoDir, videoDownload.filename), { flags: 'a' }))
+
     // URL accepted, processing
     res.status(202)
 
     // TODO: Return thumbnail and title to client
+    // TODO: This is a thumbnail URL, not a filename
     console.log('thumbnail: ' + info.thumbnail)
     console.log('title: ' + info.title)
+    console.log('filename: ' + info._filename)
 
-    res.json({
-      'videoID': videoID,
-      'thumbnail': info.thumbnail,
-      'title': info.title
-    })
+    res.json(JSON.stringify(downloadQueue, downloadQueueJSONFilter))
     return
   });
 
-  //
-  // WORKAROUND: This does not seem to be working
-  // Must manually check collision filenames / URL
-
+  // WORKAROUND: This does not seem to be working. Workaround at top of function
   // Will be called if download already exists
   video.on('complete', function complete(info) {
     // find videoID in database
@@ -381,16 +381,28 @@ const downloadFromURL = (req, res) => {
   video.on('end', function() {
     console.log('finished downloading!');
 
-    // TODO: Test if this is the right pipe location
-    // Also add to database here?
+    // Note: for some reason, we can not save the video here
 
-    // save video file
-    video.pipe(fs.createWriteStream(path.join(videoDir, videoDownload.filename)))
+    // add to database
+    videoDatabase.add(videoDownload.videoItem)
 
     // remove from downloadQueue
     // downloadQueue = downloadQueue.filter((item) => item.video !== video)
     downloadQueue = downloadQueue.filter((item) => item !== videoDownload)
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
+
+    // Download thumbnail and add info to database
+    youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, function(err, files) {
+      // if (err) throw err;
+      if (err) console.error(err);
+
+      console.log('thumbnail file downloaded:', files);
+
+      // let videoItem = videoDatabase.findByKey('url', req.body.url)
+
+      videoDownload.videoItem.thumbnailFile = files[0]
+      videoDatabase.saveToDisk()
+    });
 
     // Start frame caching
   });
@@ -439,20 +451,46 @@ const downloadProgress = (req, res) => {
 // const downloadProgressItem = (req, res) => {}
 
 const deleteVideoFile = (req, res) => {
-  console.log('videoID: ' + req.params.videoID);
+  console.log('videoID: ' + req.params.videoID)
 
-  // check video file in database
+  // Get video filename out of database
+  let videoItem = videoDatabase.findByKey('videoID', req.params.videoID)
 
-  // delete thumbnail
+  if (!!videoItem) {
+    // This is not in the database so that it is hidden from the user
+    let videoPath = path.join(videoDir, videoItem.filename)
+    let thumbnailPath = path.join(thumbnailDir, videoItem.thumbnailFile)
 
-  // delete from database
+    const deleteFiles = (...arguments) => {
+      console.log('deleting ' + arguments)
 
+      for(let file of arguments) {
+        console.log('deleting ' + file)
+
+        fs.unlink(file, (err) => {
+          // if (err) throw err;
+          if (err) console.error()
+        })
+      }
+    }
+
+    deleteFiles(videoPath, thumbnailPath)
+
+    videoDatabase.remove(videoItem)
+
+    res.sendStatus(200)
+    return
+  } else {
+    console.log('Video not found')
+    // TODO: Remove from database when file is missing?
+  }
+  ////
+  // Fall through
+  ////
 
   // File does not exist
   res.sendStatus(404)
-
-  // File deleted
-  // res.sendStatus(200)
+  return
 }
 
 

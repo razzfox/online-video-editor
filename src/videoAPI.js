@@ -9,13 +9,15 @@
 // test the command on the right
 // allow client to ask for thumbnail 'grid'...
 
-const fs = require('fs');
+const fs = require('fs')
+const path = require("path")
 const youtubedl = require('youtube-dl')
 
 // Express info: https://expressjs.com/en/starter/faq.html
 const express = require('express')
+const cors = require('cors')
 // const app = express()
-const app = module.exports = express();
+const app = module.exports = express()
 const port = 3080
 
 // Express body is undefined without a middleware
@@ -73,24 +75,38 @@ const uuidgen = () => {
 
 //// API
 
+// Process Current Working Directory
+const __processDir = path.dirname(process.mainModule.filename)
+console.log('__processDir: ' + __processDir);
+console.log('__dirname: ' + __dirname);
+
 // Storage directories
-const videoDir = __dirname + '/public/videos/'
-console.log('videoDir: '+ videoDir);
-
-// Make video directory
-if (!fs.existsSync(videoDir)){
-  console.log('Creating dir ' + videoDir);
-  fs.mkdirSync(videoDir, { recursive: true });
-}
-
-const thumbnailDir = __dirname + '/public/thumbnails/'
+// path library will take care of adding/removing system delimeters
+// Note: move up one to parent of 'src' directory
+const videoDir = path.join(__dirname, '..', '/public/videos/')
+const thumbnailDir = path.join(__dirname, '..', '/public/thumbnails/')
 
 // maybe store under videoID
-const gifDir = __dirname + '/public/gifs/'
-const frameCacheDir = __dirname + '/public/frameCache/'
+const gifDir = path.join(__dirname, '..', '/public/gifs/')
+const frameCacheDir = path.join(__dirname, '..', '/public/frameCache/')
 
-const videoDatabaseFile = __dirname + '/videoDatabase.json'
-const gifDatabaseFile = __dirname + '/gifDatabase.json'
+const videoDatabaseFile = path.join(__dirname, '..', '/videoDatabase.json')
+const gifDatabaseFile = path.join(__dirname, '..', '/gifDatabase.json')
+
+// File storage
+const makeStorageDirs = (...arguments) => {
+  console.log('Initializing storage dirs...');
+
+  for(let dir of arguments) {
+    if (!fs.existsSync(dir)){
+      console.log('Creating dir ' + dir);
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  }
+}
+
+// initialize storage dirs
+makeStorageDirs(videoDir, thumbnailDir, gifDir, frameCacheDir)
 
 
 // Database classes
@@ -170,7 +186,8 @@ class Database {
 ////
 
 const videoDatabase = new Database('Videos', videoDatabaseFile)
-const downloadQueue = []
+let downloadQueue = []
+const downloadQueueJSONFilter = ['videoID', 'url', 'filename', 'progress']
 
 
 ////
@@ -186,13 +203,44 @@ const sendVideoFile = (req, res) => {
   let videoItem = videoDatabase.findByKey('videoID', req.params.videoID)
 
   if (!!videoItem) {
-    let videoPath = videoDir + videoItem.filename
+    let videoPath = path.join(videoDir, videoItem.filename)
+
 
     // check for video file
     if (fs.existsSync(videoPath)) {
       // File sent
       res.sendFile(videoPath)
       return
+    }
+  }
+  ////
+  // Fall through
+  ////
+
+  // File does not exist
+  res.sendStatus(404)
+  return
+}
+
+const sendVideoInfo = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)
+
+  // Get video filename out of database
+  let videoItem = videoDatabase.findByKey('videoID', req.params.videoID)
+
+  if (!!videoItem) {
+    // This is not in the database so that it is hidden from the user
+    let videoPath = path.join(videoDir, videoItem.filename)
+
+    // check for video file
+    if (fs.existsSync(videoPath)) {
+      console.log(JSON.stringify(videoItem))
+      // Video info sent
+      res.json(videoItem)
+      return
+    } else {
+      console.log('Video file not found: ' + videoPath)
+      // TODO: Remove from database when file is missing?
     }
   }
   ////
@@ -211,11 +259,29 @@ const sendVideoList = (req, res) => {
 }
 
 const downloadFromURL = (req, res) => {
-  console.log('body: ' + JSON.stringify(req.body));
-  // URL error
+  // Bad Request: URL error
   if (!req.body.url) {
     console.log('url not found');
     res.sendStatus(400)
+    return
+  }
+
+  let videoItem = videoDatabase.findByKey('url', req.body.url)
+  if(!!videoItem && fs.existsSync(path.join(videoDir, videoItem.filename)
+)) {
+    console.log('filename: ' + videoItem.filename + ' already downloaded.');
+
+    // Go to parent route / remove 'download' from path
+    let videoRoute = path.join(req.route.path, '..', videoItem.videoID)
+    console.log('Redirect client to: ' + videoRoute);
+
+    // Note: req.path does not always contain the full matched route
+    // for example, middleware path is only the path after the matched route
+    // TODO: replace :videoID ???
+    res.setHeader('Location', videoRoute)
+    // File Exists, redirect (302 is the redirect equivalent of 202)
+    // 303 means use GET to continue, and 307 means reuse the same request method.
+    res.sendStatus(303)
     return
   }
 
@@ -235,7 +301,7 @@ const downloadFromURL = (req, res) => {
     'progress': 0
   }
 
-  youtubedl.getThumbs(req.body.url, { all: false, cwd: __dirname }, function(err, files) {
+  youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, function(err, files) {
     // if (err) throw err;
     if (err) console.error(err);
 
@@ -256,12 +322,13 @@ const downloadFromURL = (req, res) => {
     console.log('filename: ' + info._filename)
 
     // Add to video database
-    videoDatabase.add(new VideoItem(videoID, req.body.url, info._title, info._filename))
+    videoDatabase.add(new VideoItem(videoID, req.body.url, info.title, info._filename))
 
     // Add to global download queue for other requests / execution contexts
     videoDownload.videoID = videoID
+    videoDownload.filename = info._filename
     downloadQueue.push(videoDownload)
-    console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
+    console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
 
     // URL accepted, processing
     res.status(202)
@@ -279,15 +346,15 @@ const downloadFromURL = (req, res) => {
   });
 
   //
-  // TODO: This does not seem to be working--is pipe call correct?
-  // Maybe manually check collision filenames / URL
+  // WORKAROUND: This does not seem to be working
+  // Must manually check collision filenames / URL
 
   // Will be called if download already exists
   video.on('complete', function complete(info) {
-    console.log('filename: ' + info._filename + ' already downloaded.');
-
     // find videoID in database
     let videoItem = videoDatabase.findByKey('filename', info._filename)
+
+    console.log('filename: ' + videoItem.filename + ' already downloaded.');
 
     // Note: req.path does not always contain the full matched route
     // for example, middleware path is only the path after the matched route
@@ -318,12 +385,12 @@ const downloadFromURL = (req, res) => {
     // Also add to database here?
 
     // save video file
-    video.pipe(fs.createWriteStream(videoDir + videoDownload.filename));
+    video.pipe(fs.createWriteStream(path.join(videoDir, videoDownload.filename)))
 
     // remove from downloadQueue
     // downloadQueue = downloadQueue.filter((item) => item.video !== video)
     downloadQueue = downloadQueue.filter((item) => item !== videoDownload)
-    console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
+    console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
 
     // Start frame caching
   });
@@ -335,7 +402,7 @@ const downloadFromURL = (req, res) => {
     // remove from downloadQueue
     // downloadQueue = downloadQueue.filter((item) => item.video !== video)
     downloadQueue = downloadQueue.filter((item) => item !== videoDownload)
-    console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
+    console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
 
     // Downloader error
     res.sendStatus(500)
@@ -362,7 +429,7 @@ const downloadProgress = (req, res) => {
   // OK, return progress percent
   res.status(200)
 
-  res.json(JSON.stringify(downloadQueue))
+  res.json(JSON.stringify(downloadQueue, downloadQueueJSONFilter))
   return
 }
 
@@ -394,10 +461,29 @@ const deleteVideoFile = (req, res) => {
 // Express route matching
 ////
 
+const frontendOriginLocation = 'http://localhost:3000'
+
+// CORS: Cross-Origin Resource Sharing (backend is different than the frontend)
+app.use(cors())
+
+// Note: req.body is undefined until a middleware matches and parses it
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+// parse application/json
+app.use(bodyParser.json())
+
+// DEBUG: middleware that prints every request
+app.use(function (req, res, next) {
+  console.log(`${req.method} ${req.url}`) // populated!
+  console.log('body: ' + JSON.stringify(req.body)) // populated!
+  next()
+})
+
 // Download a file from the server to the client
 app.get('/video/download', sendVideoList)
 app.get('/video/download/progress', downloadProgress)
 app.get('/video/download/:videoID', sendVideoFile)
+app.get('/video/:videoID', sendVideoInfo)
 
 // These can be set for individual routes
 // Only matches header Content-Type: application/json
@@ -408,10 +494,10 @@ app.get('/video/download/:videoID', sendVideoFile)
 // Note: Only parses body when header Content-Type: application/json
 app.post('/video/download', bodyParser.json(), downloadFromURL)
 
-app.delete('/video/download/:videoID', deleteVideoFile)
+app.delete('/video/:videoID', deleteVideoFile)
 
 // Catch-all middleware, lexcially placed after all other routes
-// Note that regex is hard and express 4 does it incorrectly
+// Note: regex is hard and express 4 does it incorrectly
 // See: https://github.com/expressjs/express/issues/2495
 // app.get('*', function (req, res) {
 //   res.redirect('/')

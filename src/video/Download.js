@@ -2,42 +2,92 @@ import React, { Component } from 'react';
 import './Download.css';
 
 // videoAPI for reference  :
-// app.get('/video/download', sendVideoList)
-// app.get('/video/download/progress', downloadProgress)
-// app.get('/video/download/:videoID', sendVideoFile)
+// app.get('/video', sendVideoList)
 // app.get('/video/:videoID', sendVideoInfo)
+// app.get('/video/download/:videoID', sendVideoFile)
+// app.get('/video/download/progress', downloadProgress)
 //
 // app.post('/video/download', bodyParser.json(), downloadFromURL)
 //
 // app.delete('/video/:videoID', deleteVideoFile)
 
 
+// Note about mobile apps:
+// primarily select video file path (or remote video path)
+// app download will not work
+
+
 class Download extends Component {
   constructor(props) {
     super()
     this.state = {
-      downloadProgress: [],
-      availableVideos: [],
+      downloadResponse: {},
+      downloadProgressList: [],
+      availableVideoList: [],
       videoURL: '',
-      videoAPILocation: 'http://localhost:3080/video/download'
+      videoID: '',
+      videoAPILocation: 'http://localhost:3080/video/',
+      downloadRoute: 'download/',
+      progressRoute: 'download/progress',
     }
 
     this.inputURLChange = this.inputURLChange.bind(this)
     this.postVideoURL = this.postVideoURL.bind(this)
+    this.getAvailableVideoList = this.getAvailableVideoList.bind(this)
+    this.getDownloadProgress = this.getDownloadProgress.bind(this)
+    this.videoIDChange = this.videoIDChange.bind(this)
+    this.deleteVideoID = this.deleteVideoID.bind(this)
   }
 
-  getVideoList() {
-
-
+  componentDidMount() {
+    this.getAvailableVideoList()
+    this.getDownloadProgress()
   }
+
+  getAvailableVideoList() {
+    fetch(this.state.videoAPILocation).then(res => res.ok && res.json())
+    .then(response => {
+      console.log('Success:', response)
+      this.setState({availableVideoList: response})
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      this.setState({availableVideoList: JSON.stringify(error)})
+    })
+  }
+
   getVideoFile() {
-
+    // Add video html element
   }
-  deleteVideoFile() {
 
-  }
   getDownloadProgress() {
+    fetch(this.state.videoAPILocation + this.state.progressRoute).then(res => res.ok && res.json())
+    .then(response => {
+      console.log('Success:', response)
+      this.setState({downloadProgressList: response})
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      this.setState({downloadProgressList: JSON.stringify(error)})
+    })
+  }
 
+  videoIDChange(event) {
+    this.setState({videoID: event.target.value})
+  }
+
+  deleteVideoID() {
+    fetch(this.state.videoAPILocation + this.state.videoID, {
+        method: "DELETE",
+    }).then(res => res.ok && res.json())
+    .then(response => {
+      console.log('Success:', response)
+      this.setState({downloadResponse: response})
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      this.setState({downloadResponse: JSON.stringify(error)})
+    })
   }
 
   // file upload
@@ -65,24 +115,30 @@ class Download extends Component {
   // }
 
   inputURLChange(event) {
-    this.setState({videoURL: event.target.value});
+    this.setState({videoURL: event.target.value})
   }
 
   postVideoURL(event) {
-    console.log(this.state.videoURL);
+    console.log('Sending videoURL: ' + this.state.videoURL)
 
     let data = { url: this.state.videoURL }
 
     // Note: the mode: "no-cors" option *silently* disables sending the body
-    fetch(this.state.videoAPILocation, {
+    fetch(this.state.videoAPILocation + this.state.downloadRoute, {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(data), // body data type must match "Content-Type" header
     }).then(res => res.ok && res.json())
-    .then(response => console.log('Success:', JSON.stringify(response)))
-    .catch(error => console.error('Error:', error))
+    .then(response => {
+      console.log('Success:', response)
+      this.setState({downloadResponse: response})
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      this.setState({downloadResponse: JSON.stringify(error)})
+    })
 
     event.preventDefault();
   }
@@ -101,9 +157,36 @@ class Download extends Component {
               onChange={this.inputURLChange} />
           </label>
           <br/>
-          <input  id="submitButton" type="submit" value="Submit" />
+          <button id="downloadURLButton" type="submit">Submit URL</button>
         </form>
-        <pre id="downloadResponse"></pre>
+        <a>Download Response</a>
+        <pre id="downloadResponse">{JSON.stringify(this.state.downloadResponse)}</pre>
+
+        <form id="deleteVideoIDForm" onSubmit={this.deleteVideoID}>
+          <label id="deleteVideoIDLabel">
+            Delete Video ID:
+            <textarea id="deleteVideoID" type="text"
+              value={this.state.videoID}
+              onChange={this.videoIDChange} />
+          </label>
+          <br/>
+          <button id="deleteVideoIDButton" type="submit">Submit Video ID</button>
+        </form>
+
+        <form>
+          <a>Download Progress</a>
+          <button id="downloadProgressButton"
+            onClick={this.getDownloadProgress}>Get Download Progress</button>
+          <pre id="downloadProgressList">{JSON.stringify(this.state.downloadProgressList)}</pre>
+        </form>
+
+        <form>
+          <a>Available Videos</a>
+          <button id="availableVideoButton"
+            onClick={this.getAvailableVideoList}>Get Available Videos</button>
+          <pre id="availableVideoList">{JSON.stringify(this.state.availableVideoList)}</pre>
+        </form>
+
       </div>
     );
   }

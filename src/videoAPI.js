@@ -194,8 +194,6 @@ class Database {
 
 const videoDatabase = new Database('Videos', videoDatabaseFile)
 let downloadQueue = []
-const downloadQueueJSONFilter = ['videoID', 'url', 'filename', 'progress']
-
 
 ////
 // Route functions
@@ -223,6 +221,21 @@ const sendVideoFile = (req, res) => {
   ////
   // Fall through
   ////
+
+  // Redirect if the frontend GET /video/download/ instead of GET /video
+  if(videoID === 'download') {
+    console.error('Can not GET /video/download/')
+
+    // Go to parent route / remove 'download' from path
+    let videoRoute = path.join(req.route.path, '..')
+    console.log('Redirect client to: ' + videoRoute)
+
+    res.setHeader('Location', videoRoute)
+    // File Exists, redirect (302 is the redirect equivalent of 202)
+    // 303 means use GET to continue, and 307 means reuse the same request method.
+    res.sendStatus(303)
+    return
+  }
 
   // File does not exist
   res.sendStatus(404)
@@ -304,7 +317,6 @@ const downloadFromURL = (req, res) => {
 
   // info available to the callbacks in this execution context
   const videoDownload = {
-    'video': video,
     'position': 0,
     'size': 0,
     'progress': 0
@@ -330,7 +342,7 @@ const downloadFromURL = (req, res) => {
     videoDownload.videoID = videoID
     videoDownload.filename = info._filename
     downloadQueue.push(videoDownload)
-    console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
+    console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // save video file
     video.pipe(fs.createWriteStream(path.join(videoDir, videoDownload.filename), { flags: 'a' }))
@@ -344,7 +356,7 @@ const downloadFromURL = (req, res) => {
     console.log('title: ' + info.title)
     console.log('filename: ' + info._filename)
 
-    res.json(JSON.stringify(downloadQueue, downloadQueueJSONFilter))
+    res.json(downloadQueue)
     return
   });
 
@@ -389,23 +401,23 @@ const downloadFromURL = (req, res) => {
     // remove from downloadQueue
     // downloadQueue = downloadQueue.filter((item) => item.video !== video)
     downloadQueue = downloadQueue.filter((item) => item !== videoDownload)
-    console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
+    console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Download thumbnail and add info to database
     youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, function(err, files) {
       // if (err) throw err;
       if (err) console.error(err);
-
       console.log('thumbnail file downloaded:', files);
-
-      // let videoItem = videoDatabase.findByKey('url', req.body.url)
 
       videoDownload.videoItem.thumbnailFile = files[0]
       videoDatabase.saveToDisk()
-    });
 
-    // Start frame caching
-  });
+      // WARNING: The cwd option does not work here. Workaround to move the file
+      fs.renameSync(files[0], path.join(thumbnailDir, files[0]))
+    })
+
+    // TODO: Start frame caching
+  })
 
   video.on('error', function error(err) {
     console.log('youtube-dl error: ', err);
@@ -414,7 +426,7 @@ const downloadFromURL = (req, res) => {
     // remove from downloadQueue
     // downloadQueue = downloadQueue.filter((item) => item.video !== video)
     downloadQueue = downloadQueue.filter((item) => item !== videoDownload)
-    console.log('downloadQueue: ' + JSON.stringify(downloadQueue, downloadQueueJSONFilter))
+    console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Downloader error
     res.sendStatus(500)
@@ -441,7 +453,7 @@ const downloadProgress = (req, res) => {
   // OK, return progress percent
   res.status(200)
 
-  res.json(JSON.stringify(downloadQueue, downloadQueueJSONFilter))
+  res.json(downloadQueue)
   return
 }
 
@@ -462,14 +474,12 @@ const deleteVideoFile = (req, res) => {
     let thumbnailPath = path.join(thumbnailDir, videoItem.thumbnailFile)
 
     const deleteFiles = (...arguments) => {
-      console.log('deleting ' + arguments)
-
       for(let file of arguments) {
         console.log('deleting ' + file)
 
         fs.unlink(file, (err) => {
           // if (err) throw err;
-          if (err) console.error()
+          if (err) console.error(err)
         })
       }
     }
@@ -496,12 +506,14 @@ const deleteVideoFile = (req, res) => {
 
 
 ////
-// Express route matching
+// Middleware (helper functions before main logic)
 ////
 
-const frontendOriginLocation = 'http://localhost:3000'
 
 // CORS: Cross-Origin Resource Sharing (backend is different than the frontend)
+// Note: mobile apps don't have a concept of CORS (yet)
+// TODO: assign a specific origin address
+// const frontendOriginLocation = 'http://localhost:3000'
 app.use(cors())
 
 // Note: req.body is undefined until a middleware matches and parses it
@@ -517,10 +529,25 @@ app.use(function (req, res, next) {
   next()
 })
 
+// a middleware with no mount path; gets executed for every request to the app
+app.use(function(req, res, next) {
+  res.setHeader('charset', 'utf-8')
+  // Disable all caching (HTTP 1.1)
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+  next()
+})
+
+
+////
+// Route matching (main app logic)
+////
+
 // Download a file from the server to the client
-app.get('/video/download', sendVideoList)
+// Note: order matching is specific routes (download) before general (:videoID)
 app.get('/video/download/progress', downloadProgress)
 app.get('/video/download/:videoID', sendVideoFile)
+
+app.get('/video', sendVideoList)
 app.get('/video/:videoID', sendVideoInfo)
 
 // These can be set for individual routes

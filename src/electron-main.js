@@ -3,7 +3,11 @@ const {app, BrowserWindow} = require('electron')
 const path = require('path')
 const url = require('url')
 
-// Spin up the express backend API **side effect**
+// Note: this does not work inside electron's process because youtube-dl
+// uses the spread operator from ES6. remove it from the module youtube-dl.js
+// TODO: This may want to be changed to an npm run script to avoid this problem.
+
+// Spin up the express backend as a **side effect**
 const { videoAPI } = require('./videoAPI.js');
 
 // Get port info

@@ -10,7 +10,10 @@
 // allow client to ask for thumbnail 'grid'...
 
 const fs = require('fs')
-const path = require("path")
+const path = require('path')
+
+const database = require('./database.js')
+
 const youtubedl = require('youtube-dl')
 
 // Express info: https://expressjs.com/en/starter/faq.html
@@ -50,150 +53,37 @@ const bodyParser = require('body-parser')
 // in the frontend requests for preemptive caching and logging purposes.
 // app.get('/', site.index)
 
-
-/**
- * Fast UUID generator, RFC4122 version 4 compliant.
- * @author Jeff Ward (jcward.com).
- * @license MIT license
- * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
- **/
-const uuidgen = () => {
-  let lut = []
-  for (let i=0; i<256; i++) {
-    lut[i] = (i<16?'0':'')+(i).toString(16);
-  }
-  let d0 = Math.random()*0xffffffff|0;
-  let d1 = Math.random()*0xffffffff|0;
-  let d2 = Math.random()*0xffffffff|0;
-  let d3 = Math.random()*0xffffffff|0;
-  return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff]+'-'+
-    lut[d1&0xff]+lut[d1>>8&0xff]+'-'+lut[d1>>16&0x0f|0x40]+lut[d1>>24&0xff]+'-'+
-    lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+'-'+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
-    lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
-}
-
-
-//// API
-
 // Process Current Working Directory
 const __processDir = path.dirname(process.mainModule.filename)
 console.log('__processDir: ' + __processDir);
 console.log('__dirname: ' + __dirname);
 
-// Storage directories
-// path library will take care of adding/removing system delimeters
-// Note: move up one to parent of 'src' directory
-const videoDir = path.join(__dirname, '..', '/public/videos/')
-const thumbnailDir = path.join(__dirname, '..', '/public/thumbnails/')
 
-// maybe store under videoID
-const gifDir = path.join(__dirname, '..', '/public/gifs/')
-const frameCacheDir = path.join(__dirname, '..', '/public/frameCache/')
+////
+// API
+////
 
-const videoDatabaseFile = path.join(__dirname, '..', '/videoDatabase.json')
-const gifDatabaseFile = path.join(__dirname, '..', '/gifDatabase.json')
-
-// File storage
-const makeStorageDirs = (...arguments) => {
-  console.log('Initializing storage dirs...');
-
-  for(let dir of arguments) {
-    if (!fs.existsSync(dir)){
-      console.log('Creating dir ' + dir);
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  }
-}
-
-// initialize storage dirs
-makeStorageDirs(videoDir, thumbnailDir, gifDir, frameCacheDir)
-
-
-// Database classes
-class VideoItem {
-  constructor(videoID, url, title, filename, thumbnailFile) {
-    this.videoID = videoID
-    this.url = url
-    this.title = title
-    this.filename = filename
-    this.thumbnailFile = thumbnailFile
-  }
-}
-
-class GifItem {
-  constructor(videoID, name, filename, settings) {
-    this.videoID = videoID
-    this.name = name
-    this.filename = filename
-    this.settings = settings
-  }
-}
-
-class GifSettings {
-  constructor(width, loop, fps, bounce) {
-    this.width = width
-    this.loop = loop
-    this.fps = fps
-    this.bounce = bounce
-  }
-}
-
-class Database {
-  constructor(name, databaseFile) {
-    this.name = name
-    this.databaseFile = databaseFile
-    // could name this: data, store, all, items, allItems
-    // want to reduce name collisions and confusion during syntax highlighting
-    this.databaseStore = []
-
-    // restore database from disk
-    this.restoreFromDisk()
-  }
-
-  restoreFromDisk() {
-    if (fs.existsSync(this.databaseFile)) {
-      this.databaseStore = JSON.parse(fs.readFileSync(this.databaseFile))
-
-      console.log('Database ' + this.name + ' read from ' + this.databaseFile);
-    }
-  }
-
-  saveToDisk() {
-    fs.writeFile(this.databaseFile, JSON.stringify(this.databaseStore), (err) => {
-      // if (err) throw err;
-      if (err) console.error(err);
-
-      console.log('Database written to ' + this.databaseFile);
-    });
-  }
-
-  findByKey(keyName, value) {
-    for(let item of this.databaseStore){
-      if(item[keyName] === value) return item
-    }
-  }
-
-  add(addItem) {
-    this.databaseStore.unshift(addItem)
-
-    // Save database to disk
-    this.saveToDisk()
-  }
-
-  remove(removeItem) {
-    this.databaseStore = this.databaseStore.filter((item) => item !== removeItem)
-
-    // Save database to disk
-    this.saveToDisk()
-  }
-}
 
 ////
 // Initialize database
 ////
 
-const videoDatabase = new Database('Videos', videoDatabaseFile)
+
+////
+// Storage directories
+////
+
+// Note: move up one to parent of 'src' directory; path library manages system delimeters
+const videoDir = path.join(__dirname, '..', '/public/videos/')
+const thumbnailDir = path.join(__dirname, '..', '/public/thumbnails/')
+const videoDatabaseFile = path.join(__dirname, '..', '/videoDatabase.json')
+
+// initialize storage
+database.makeStorageDirs(videoDir, thumbnailDir)
+
+const videoDatabase = new database.Database('Videos', videoDatabaseFile)
 let downloadQueue = []
+
 
 ////
 // Route functions
@@ -331,15 +221,12 @@ const downloadFromURL = (req, res) => {
 
     videoDownload.size = info.size;
 
-    let videoID = uuidgen()
-    console.log('videoID: ' + videoID)
-
     // Create item that will go into database
-    let videoItem = new VideoItem(videoID, req.body.url, info.title, info._filename)
+    let videoItem = new VideoItem(req.body.url, info.title, info._filename)
 
     // Add to global download queue for other requests / execution contexts
     videoDownload.videoItem = videoItem
-    videoDownload.videoID = videoID
+    videoDownload.videoID = videoItem.videoID
     videoDownload.filename = info._filename
     downloadQueue.push(videoDownload)
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))

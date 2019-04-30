@@ -28,7 +28,8 @@ class App extends Component {
           <h1 className="App-logo">⭐</h1>
           <h2>Razz's GIF Generator</h2>
         </div>
-        <Download />
+        <GIFGenerator />
+        // <Download />
       </div>
     );
   }

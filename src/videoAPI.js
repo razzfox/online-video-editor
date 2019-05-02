@@ -61,7 +61,7 @@ console.log('__processDir: ' + __processDir);
 console.log('__dirname: ' + __dirname);
 
 
-// GifAPI
+// gifAPI
 const gifAPILocation = `http://localhost:${port}`
 const gifAPIRoute = '/gif'
 const cacheRoute = 'cache'
@@ -466,7 +466,7 @@ app.delete('/video/:videoID', deleteVideoFile)
 // Initialize express
 ////
 
-// GifAPI uses this express instance and provides an exported router
+// gifAPI exports a router for this express instance
 const gifAPI = require('./gifAPI.js')
 app.use('/', gifAPI);
 

@@ -1,5 +1,5 @@
 {
-  "name": "electron-with-create-react-app",
+  "name": "electron-gifs",
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
@@ -9,6 +9,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "ffmpeg": "0.0.4",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "youtube-dl": "^1.13.1"

@@ -3,7 +3,7 @@ const path = require('path')
 
 const database = require('./database.js')
 
-// const ffmpeg = require('ffmpeg')
+const ffmpeg = require('ffmpeg')
 
 const express = require('express')
 

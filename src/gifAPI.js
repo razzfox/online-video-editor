@@ -6,12 +6,9 @@ const database = require('./database.js')
 // const ffmpeg = require('ffmpeg')
 
 const express = require('express')
-const cors = require('cors')
-// const app = express()
-const app = module.exports = express()
-const port = 3080
-const bodyParser = require('body-parser')
 
+// This api will add routes to the videoAPI express object
+const router = module.exports = express.Router()
 
 console.log('Starting GIF API');
 
@@ -33,23 +30,75 @@ database.makeStorageDirs(gifDir, frameCacheDir)
 const gifDatabase = new database.Database('GIFs', gifDatabaseFile)
 
 
-// get video info (length, fps, size)
+const postVideoInfo = (req, res) => {
+  let videoItem = req.body
+  console.log('videoItem: ' + JSON.stringify(videoItem))
 
-// get gif info
+  res.json(videoItem);
+}
+
+const putVideoToGIF = (req, res) => {
+  let gifSettings = req.body
+  console.log('gifSettings: ' + JSON.stringify(gifSettings))
+
+
+  // auto-include boomerang version
+  // provide multiple file sizes (and gifv)
+
+  res.json(gifSettings);
+}
+
+const getGIFList = (req, res) => {
+  res.json(gifDatabase);
+}
+
+const getGIFInfo = (req, res) => {
+  let gifID = req.params.gifID
+
+  console.log('gifID: ' + gifID)
+
+  let gifItem = gifDatabase.findByKey('gifID', gifID)
+
+  res.json(gifItem);
+}
+
+const deleteGIF = (req, res) => {
+  let gifID = req.params.gifID
+
+  console.log('gifID: ' + gifID)
+
+  res.json(404);
+}
+
+const postFrameCache = (req, res) => {
+  let videoItem = req.body
+  console.log('videoItem: ' + JSON.stringify(videoItem))
+
+  res.json(videoItem);
+}
+
+// Reminder: Body only parses when header Content-Type: application/json
+
+// analyze video info (length, fps, size)
+router.post('/videoInfo', postVideoInfo)
+
+// convert video to gif
+router.put('/gif', putVideoToGIF)
 
 // get all gifs
-// get all gifs from videoID
+router.get('/gif', getGIFList)
 
-// convert video timestamp to gif
-// auto-include boomerang version
+// get gif info
+router.get('/gif/:gifID', getGIFInfo)
+
+// get all gifs from videoID
+// (data sorting needs to be done on the frontend)
 
 // delete gif
+router.delete('/gif/:gifID', deleteGIF)
 
-// select video file / edit video again
-
-
-
-// ???
-// get frame cache state?
-// start/stop frame cache?
-// is frame cache followed by low-q gif cache?
+// provide frame cache on pull state (do not push state to other resources)
+// detect state simply by looking at existing files (it is a cache, not a store)
+// include low-q gif cache
+// select video file / edit video again -> return frame cache
+router.post('/framecache', postFrameCache)

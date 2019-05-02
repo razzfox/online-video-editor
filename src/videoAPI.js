@@ -53,24 +53,22 @@ const bodyParser = require('body-parser')
 // in the frontend requests for preemptive caching and logging purposes.
 // app.get('/', site.index)
 
+console.log('Starting Video API');
+
 // Process Current Working Directory
 const __processDir = path.dirname(process.mainModule.filename)
 console.log('__processDir: ' + __processDir);
 console.log('__dirname: ' + __dirname);
 
 
-////
-// API
-////
+// GifAPI
+const gifAPILocation = `http://localhost:${port}`
+const gifAPIRoute = '/gif'
+const cacheRoute = 'cache'
 
 
 ////
-// Initialize database
-////
-
-
-////
-// Storage directories
+// Initialize database and storage directories
 ////
 
 // Note: move up one to parent of 'src' directory; path library manages system delimeters
@@ -303,7 +301,8 @@ const downloadFromURL = (req, res) => {
       fs.renameSync(files[0], path.join(thumbnailDir, files[0]))
     })
 
-    // TODO: Start frame caching
+    // TODO: Call gifAPI to begin frame cache
+    // get-state, expect either processing or done, and 404 possible
   })
 
   video.on('error', function error(err) {
@@ -404,6 +403,7 @@ const deleteVideoFile = (req, res) => {
 app.use(cors())
 
 // Note: req.body is undefined until a middleware matches and parses it
+// Client must send Content-Type
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
@@ -412,6 +412,10 @@ app.use(bodyParser.json())
 // DEBUG: middleware that prints every request
 app.use(function (req, res, next) {
   console.log(`${req.method} ${req.url}`) // populated!
+  // Express header function
+  // console.log('Content-Type: ' + req.get('Content-Type'))
+  // Node header property
+  console.log('Content-Type: ' + req.headers['content-type'])
   console.log('body: ' + JSON.stringify(req.body)) // populated!
   next()
 })
@@ -444,7 +448,7 @@ app.get('/video/:videoID', sendVideoInfo)
 // app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 // Note: Only parses body when header Content-Type: application/json
-app.post('/video/download', bodyParser.json(), downloadFromURL)
+app.post('/video/download', downloadFromURL)
 
 app.delete('/video/:videoID', deleteVideoFile)
 
@@ -461,6 +465,11 @@ app.delete('/video/:videoID', deleteVideoFile)
 ////
 // Initialize express
 ////
+
+// GifAPI uses this express instance and provides an exported router
+const gifAPI = require('./gifAPI.js')
+app.use('/', gifAPI);
+
 
 app.listen(port, () => console.log(`Express app listening on port ${port}!`))
 

@@ -29,6 +29,8 @@ class Download extends Component {
       videoAPILocation: 'http://localhost:3080/video/',
       downloadRoute: 'download/',
       progressRoute: 'download/progress',
+      gifAPILocation: 'http://localhost:3080/gif/',
+      cacheRoute: 'cache'
     }
 
     this.inputURLChange = this.inputURLChange.bind(this)

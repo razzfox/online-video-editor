@@ -7,3 +7,6 @@ npm install youtube-dl
 # so youtube-dl.js needs to remove the spread operator
 
 npm install
+
+# Run API for development
+bash watchman-simple.sh node src/videoAPI.js

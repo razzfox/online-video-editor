@@ -9,7 +9,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.16.4",
-    "ffmpeg": "0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "youtube-dl": "^1.13.1"

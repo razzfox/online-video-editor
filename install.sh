@@ -8,5 +8,8 @@ npm install youtube-dl
 
 npm install
 
+# ffmpeg modules require that ffmpeg is already installed (including all necessary encoding libraries like libmp3lame or libx264
+brew install ffmpeg
+
 # Run API for development
 bash watchman-simple.sh node src/videoAPI.js

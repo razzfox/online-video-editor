@@ -86,8 +86,6 @@ class Database {
 
 // File storage
 const makeStorageDirs = (...arguments) => {
-  console.log('Initializing storage dirs...');
-
   for(let dir of arguments) {
     if (!fs.existsSync(dir)){
       console.log('Creating dir ' + dir);

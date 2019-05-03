@@ -166,13 +166,27 @@ const sendVideoList = (req, res) => {
   return
 }
 
-const downloadFromURL = (req, res) => {
-  // Bad Request: URL error
-  if (!req.body.url) {
-    console.log('url not found');
-    res.sendStatus(400)
+
+const checkBodyForErrors = (req, res) => {
+  // Bad Content-Type
+  if(req.headers['content-type'] !== 'application/json') {
+    let error = 'Content-Type not JSON'
+    console.error(error)
+    res.status(400).send(error)
     return
   }
+
+  // Bad URL
+  if (!req.body.url) {
+    let error = 'URL not found in body'
+    console.error(error)
+    res.status(400).send(error)
+    return
+  }
+}
+
+const downloadFromURL = (req, res) => {
+  checkBodyForErrors(req, res)
 
   // Detect if video already exists
   let videoItem = videoDatabase.findByKey('url', req.body.url)

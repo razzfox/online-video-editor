@@ -1,0 +1,19 @@
+Test video
+40 frames
+video: 60M h264, 00:15:05.90
+"duration_ts": 13913600,
+"duration": 905.833333,
+"bit_rate": 461149,
+"nb_frames": 27175,
+
+full size frames is not an option (unless video size is small)
+
+BMP
+100px: 20K, 27s
+200px: 68K, 29s
+300px: 148K, 42s
+
+PNG
+100px: 12-16K, 27-33s
+200px: 40-48K, 30-39s
+300px: 72-96K, 49-55s

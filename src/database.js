@@ -1,6 +1,5 @@
 const fs = require('fs')
 const path = require('path')
-
 const uuidgen = require('./uuidgen.js')
 
 
@@ -14,22 +13,27 @@ class VideoItem {
   }
 }
 
-class GifItem {
+class GIFItem {
   constructor(videoID, name, filename, settings) {
     this.gifID = uuidgen()
     this.videoID = videoID
     this.name = name
-    this.filename = filename
+    this.filename = `${filename}_${this.gifID}.gif`
     this.settings = settings
   }
 }
 
-class GifSettings {
-  constructor(width, loop, fps, bounce) {
-    this.width = width
-    this.loop = loop
-    this.fps = fps
-    this.bounce = bounce
+class GIFSettings {
+  constructor(start, length, options) {
+    // seek: number or string format [[hh:]mm:]ss[.xxx]
+    this.start = start
+    // duration: same formats as above
+    this.length = length
+    // may be #x# or #x?
+    this.width = options.width
+    this.loop = options.loop
+    this.fps = options.fps
+    this.bounce = options.bounce
   }
 }
 
@@ -59,13 +63,11 @@ class Database {
       if (err) console.error(err);
 
       console.log('Database written to ' + this.databaseFile);
-    });
+    })
   }
 
-  findByKey(keyName, value) {
-    for(let item of this.databaseStore){
-      if(item[keyName] === value) return item
-    }
+  findItemsByKey(keyName, value) {
+    return this.databaseStore.filter(item => item[keyName] === value)
   }
 
   add(addItem) {
@@ -95,14 +97,28 @@ const makeStorageDirs = (...arguments) => {
 }
 
 
+// Delete files
+const deleteFiles = (...arguments) => {
+  for(let file of arguments) {
+    console.log('deleting ' + file)
+
+    fs.unlink(file, (err) => {
+      // if (err) throw err;
+      if (err) console.error(err)
+    })
+  }
+}
+
+
 ////
 // Export module
 ////
 
 module.exports = {
   VideoItem: VideoItem,
-  GifItem: GifItem,
-  GifSettings: GifSettings,
+  GIFItem: GIFItem,
+  GIFSettings: GIFSettings,
   Database: Database,
   makeStorageDirs: makeStorageDirs,
+  deleteFiles: deleteFiles,
 }

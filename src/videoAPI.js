@@ -87,54 +87,58 @@ let downloadQueue = []
 // Route functions
 ////
 
+// this can be handled by the public directory
 // This is a tad more than a plain GET request because I don't want to expose
 // filenames and paths to the user
-const sendVideoFile = (req, res) => {
+// const getVideoFile = (req, res) => {
+//   console.log('videoID: ' + req.params.videoID)
+//
+//   // Get video filename out of database
+//   let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+//
+//   if (!!videoItem) {
+//     let videoPath = path.join(videoDir, videoItem.filename)
+//
+//
+//     // check for video file
+//     if (fs.existsSync(videoPath)) {
+//       // File sent
+//       res.sendFile(videoPath)
+//       return
+//     }
+//   }
+//   ////
+//   // Fall through
+//   ////
+//
+//   // Redirect if the frontend GET /video/download/ instead of GET /video
+//   if(videoID === 'download') {
+//     console.error('Can not GET /video/download/')
+//
+//     // Go to parent route / remove 'download' from path
+//     let videoRoute = path.join(req.route.path, '..')
+//     console.log('Redirect client to: ' + videoRoute)
+//
+//     res.setHeader('Location', videoRoute)
+//     // File Exists, redirect (302 is the redirect equivalent of 202)
+//     // 303 means use GET to continue, and 307 means reuse the same request method.
+//     res.sendStatus(303)
+//     return
+//   }
+//   // //
+//   // Fall through
+//   // //
+//   //
+//   // Not found
+//   // File does not exist
+//   res.sendStatus(404)
+// }
+
+const getVideoInfo = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
-  // Get video filename out of database
-  let videoItem = videoDatabase.findByKey('videoID', req.params.videoID)
-
-  if (!!videoItem) {
-    let videoPath = path.join(videoDir, videoItem.filename)
-
-
-    // check for video file
-    if (fs.existsSync(videoPath)) {
-      // File sent
-      res.sendFile(videoPath)
-      return
-    }
-  }
-  ////
-  // Fall through
-  ////
-
-  // Redirect if the frontend GET /video/download/ instead of GET /video
-  if(videoID === 'download') {
-    console.error('Can not GET /video/download/')
-
-    // Go to parent route / remove 'download' from path
-    let videoRoute = path.join(req.route.path, '..')
-    console.log('Redirect client to: ' + videoRoute)
-
-    res.setHeader('Location', videoRoute)
-    // File Exists, redirect (302 is the redirect equivalent of 202)
-    // 303 means use GET to continue, and 307 means reuse the same request method.
-    res.sendStatus(303)
-    return
-  }
-
-  // File does not exist
-  res.sendStatus(404)
-  return
-}
-
-const sendVideoInfo = (req, res) => {
-  console.log('videoID: ' + req.params.videoID)
-
-  // Get video filename out of database
-  let videoItem = videoDatabase.findByKey('videoID', req.params.videoID)
+  // Get video out of database
+  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
 
   if (!!videoItem) {
     // This is not in the database so that it is hidden from the user
@@ -160,10 +164,9 @@ const sendVideoInfo = (req, res) => {
   return
 }
 
-const sendVideoList = (req, res) => {
+const getVideoList = (req, res) => {
   console.log('sending database JSON')
   res.json(videoDatabase.databaseStore)
-  return
 }
 
 
@@ -189,7 +192,7 @@ const downloadFromURL = (req, res) => {
   checkBodyForErrors(req, res)
 
   // Detect if video already exists
-  let videoItem = videoDatabase.findByKey('url', req.body.url)
+  let videoItem = videoDatabase.findItemsByKey('url', req.body.url)[0]
   if(!!videoItem && fs.existsSync(path.join(videoDir, videoItem.filename)
 )) {
     console.log('filename: ' + videoItem.filename + ' already downloaded.');
@@ -200,7 +203,6 @@ const downloadFromURL = (req, res) => {
 
     // Note: req.path does not always contain the full matched route
     // for example, middleware path is only the path after the matched route
-    // TODO: replace :videoID ???
     res.setHeader('Location', videoRoute)
     // File Exists, redirect (302 is the redirect equivalent of 202)
     // 303 means use GET to continue, and 307 means reuse the same request method.
@@ -225,7 +227,7 @@ const downloadFromURL = (req, res) => {
   }
 
   // Will be called when the download starts.
-  video.on('info', function(info) {
+  video.on('info', (info) => {
     // Send this to the user UI
     console.log('Download started');
     console.log('filename: ' + info._filename);
@@ -234,7 +236,7 @@ const downloadFromURL = (req, res) => {
     videoDownload.size = info.size;
 
     // Create item that will go into database
-    let videoItem = new VideoItem(req.body.url, info.title, info._filename)
+    let videoItem = new database.VideoItem(req.body.url, info.title, info._filename)
 
     // Add to global download queue for other requests / execution contexts
     videoDownload.videoItem = videoItem
@@ -261,24 +263,11 @@ const downloadFromURL = (req, res) => {
 
   // WORKAROUND: This does not seem to be working. Workaround at top of function
   // Will be called if download already exists
-  video.on('complete', function complete(info) {
-    // find videoID in database
-    let videoItem = videoDatabase.findByKey('filename', info._filename)
-
-    console.log('filename: ' + videoItem.filename + ' already downloaded.');
-
-    // Note: req.path does not always contain the full matched route
-    // for example, middleware path is only the path after the matched route
-    // TODO: replace :videoID ???
-    res.setHeader('Location', `${req.route.path}/${videoItem.videoID}`)
-    // File Exists, redirect (302 is the redirect equivalent of 202)
-    // 303 means use GET to continue, and 307 means reuse the same request method.
-    res.sendStatus(303)
-    return
-  });
+  // video.on('complete', (info) => {
+  // });
 
   // video size is set in the info promise
-  video.on('data', function data(chunk) {
+  video.on('data', (chunk) => {
     videoDownload.position += chunk.length;
     // video size should not be 0 here.
     if (videoDownload.size) {
@@ -289,7 +278,7 @@ const downloadFromURL = (req, res) => {
     }
   });
 
-  video.on('end', function() {
+  video.on('end', () => {
     console.log('finished downloading!');
 
     // Note: for some reason, we can not save the video here
@@ -303,7 +292,7 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Download thumbnail and add info to database
-    youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, function(err, files) {
+    youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, (err, files) => {
       // if (err) throw err;
       if (err) console.error(err);
       console.log('thumbnail file downloaded:', files);
@@ -319,8 +308,8 @@ const downloadFromURL = (req, res) => {
     // get-state, expect either processing or done, and 404 possible
   })
 
-  video.on('error', function error(err) {
-    console.log('youtube-dl error: ', err);
+  video.on('error', (err) => {
+    console.error('youtube-dl error: ', err);
 
     // TODO: Is this necessary here?
     // remove from downloadQueue
@@ -329,13 +318,13 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Downloader error
-    res.sendStatus(500)
+    if(!res.headerSent) res.sendStatus(500)
     return
-  });
+  })
 }
 
   // Makes a network call for info?
-  // youtubedl.getInfo(req.body.url, [], function(err, info) {
+  // youtubedl.getInfo(req.body.url, [], (err, info) => {
   //   if (err) return;
   //
   //   console.log('id:', info.id);
@@ -348,7 +337,7 @@ const downloadFromURL = (req, res) => {
   // });
 
 // Possibility of simultaneous downloads
-const downloadProgress = (req, res) => {
+const getDownloadProgress = (req, res) => {
   // 102 would mean that no information is available. it also may be WebDAV only
   // OK, return progress percent
   res.status(200)
@@ -357,35 +346,26 @@ const downloadProgress = (req, res) => {
   return
 }
 
-// I decided that a specific GET API for an individual item is a frontend scope,
-// and is totally satisfied by the GET collection downloadProgress
+// I decided that GET for an individual download progress item is frontend scope,
+// and is totally satisfied by the GET collection getDownloadProgress
 // i.e. the frontend can sort and display the data itself
-// const downloadProgressItem = (req, res) => {}
+// const getDownloadProgressItem = (req, res) => {}
 
 const deleteVideoFile = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
-  // Get video filename out of database
-  let videoItem = videoDatabase.findByKey('videoID', req.params.videoID)
+  // Get filename out of database
+  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
 
   if (!!videoItem) {
     // This is not in the database so that it is hidden from the user
     let videoPath = path.join(videoDir, videoItem.filename)
     let thumbnailPath = path.join(thumbnailDir, videoItem.thumbnailFile)
 
-    const deleteFiles = (...arguments) => {
-      for(let file of arguments) {
-        console.log('deleting ' + file)
+    // delete file
+    database.deleteFiles(videoPath, thumbnailPath)
 
-        fs.unlink(file, (err) => {
-          // if (err) throw err;
-          if (err) console.error(err)
-        })
-      }
-    }
-
-    deleteFiles(videoPath, thumbnailPath)
-
+    // remove from database
     videoDatabase.remove(videoItem)
 
     res.sendStatus(200)
@@ -449,11 +429,11 @@ app.use(function(req, res, next) {
 
 // Download a file from the server to the client
 // Note: order matching is specific routes (download) before general (:videoID)
-app.get('/video/download/progress', downloadProgress)
-app.get('/video/download/:videoID', sendVideoFile)
+app.get('/video/download/progress', getDownloadProgress)
+// app.get('/video/download/:videoID', getVideoFile)
 
-app.get('/video', sendVideoList)
-app.get('/video/:videoID', sendVideoInfo)
+app.get('/video', getVideoList)
+app.get('/video/:videoID', getVideoInfo)
 
 // These can be set for individual routes
 // Only matches header Content-Type: application/json

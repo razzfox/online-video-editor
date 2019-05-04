@@ -1,10 +1,9 @@
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 
 const database = require('./database.js')
 
 const ffmpeg = require('fluent-ffmpeg')
-const ffmpeg_extract_frames = require('ffmpeg-extract-frames')
 
 const express = require('express')
 
@@ -55,38 +54,131 @@ const postVideoInfo = (req, res) => {
   checkBodyForErrors(req, res)
 
   let videoItem = req.body
-  let videoFile = videoItem.filename
-  let videoPath = path.join(videoDir, videoFile)
+  let videoPath = path.join(videoDir, videoItem.filename)
   console.log('videoPath: ' + JSON.stringify(videoPath))
 
   if (fs.existsSync(videoPath)) {
     let process = ffmpeg(videoPath)
-      .ffprobe(function(err, metadata) {
+      .ffprobe((err, metadata) => {
+        if (err) console.error(err)
+
         console.dir(metadata)
         res.json(metadata)
+        return
       })
   } else {
+    // Not found
     res.sendStatus(404)
+    return
   }
+  ////
+  // Responses are generated inside ffmpeg callbacks
+  ////
+  return
 }
+
+// TODO: Can FFMPEG merge GIFs?
+const mergeGIFs = (gifFilenames) => {
+  ffmpeg('/path/to/part1.avi')
+    .input('/path/to/part2.avi')
+    .input('/path/to/part2.avi')
+    .on('error', (err) => {
+      console.error('An error occurred: ' + err.message);
+    })
+    .on('end', () => {
+      console.log('Merging finished !');
+    })
+    // .on('progress', (progress) => {
+    //   console.log(progress);
+    // })
+    .mergeToFile('/path/to/merged.avi', '/path/to/tempDir')
+
+    ////
+    // Responses are generated inside ffmpeg callbacks
+    ////
+    return
+}
+
+// Kill ffmpeg after 60 seconds anyway
+// setTimeout(function() {
+//   command.on('error', function() {
+//     console.log('Ffmpeg has been killed');
+//   });
+//
+//   command.kill();
+// }, 60000);
 
 const putVideoToGIF = (req, res) => {
   checkBodyForErrors(req, res)
 
-  let gifSettings = req.body
-  console.log('gifSettings: ' + JSON.stringify(gifSettings))
+  let videoItem = req.body
+  let videoPath = path.join(videoDir, videoItem.filename)
 
-  .seek('3:00')
+  let gifSettings = new database.GIFSettings(videoItem.start, videoItem.length, videoItem.options)
+  let gifSettingsJSON = JSON.stringify(gifSettings)
+  console.log('GIF settings: ' + gifSettingsJSON)
 
+  // Since there are going to be so many gifs used for previews, we need UUIDs
+  // let gifFilename = `${path.parse(videoItem.filename)}_${videoItem.start}_${videoItem.length}_${videoItem.options.width}_${videoItem.options.loop}_${videoItem.options.fps}_${videoItem.options.bounce}.gif`
+  let gifItem = new database.GIFItem(videoItem.videoID, videoItem.title, path.parse(videoItem.filename).name, gifSettings)
 
-  // auto-include boomerang version
-  // provide multiple file sizes (and gifv)
+  // Verify that no gif already in the database matches requested settings
+  let gifsUsingVideoID = gifDatabase.findItemsByKey('videoID', videoItem.videoID)
+  if(!gifsUsingVideoID.some(item => JSON.stringify(item.settings) === gifSettingsJSON)) {
+    let gifPath = path.join(gifDir, gifItem.filename)
+    // Note: seek is relative, so it can be called multiple times and video gets
+    // decoded while seeking, but seekInput sets the start point, and skips decoding
+    let process = ffmpeg(videoPath)
+      .output(gifPath)
+      .seekInput(gifSettings.start)
+      .duration(gifSettings.length)
 
-  res.json(gifSettings)
+      .on('start', () => {
+        console.time('ffmpeg-' + gifItem.filename)
+
+        console.log('starting GIF conversion')
+        res.status(201).json(gifItem)
+        return
+      })
+      // .on('progress', (progress) => {
+      //   console.log(progress);
+      // })
+      .on('end', () => {
+        console.timeEnd('ffmpeg-' + gifItem.filename)
+
+        // add to database
+        gifDatabase.add(gifItem)
+      })
+      .on('error', (err, stdout, stderr) => {
+        console.error('Cannot process video: ' + err.message)
+        // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
+        if(!res.headerSent) res.status(500).json(err.message)
+        return
+      })
+      .renice(5)
+      .run()
+      // auto-include boomerang version
+      // provide multiple file sizes (and gifv)
+  } else {
+    // existing GIF found
+    let gifRoute = path.join(req.route.path, videoItem.videoID)
+    console.log('Redirect client to: ' + gifRoute);
+
+    res.setHeader('Location', gifRoute)
+    // File Exists, redirect (302 is the redirect equivalent of 202)
+    // 303 means use GET to continue, and 307 means reuse the same request method.
+    res.sendStatus(303)
+    return
+  }
+  ////
+  // Responses are generated inside ffmpeg callbacks
+  ////
+  return
 }
 
 const getGIFList = (req, res) => {
-  res.json(gifDatabase);
+  console.log('sending database JSON')
+  res.json(gifDatabase.databaseStore)
 }
 
 const getGIFInfo = (req, res) => {
@@ -94,90 +186,178 @@ const getGIFInfo = (req, res) => {
 
   console.log('gifID: ' + gifID)
 
-  let gifItem = gifDatabase.findByKey('gifID', gifID)
+  let gifItem = gifDatabase.findItemsByKey('gifID', gifID)[0]
+  if (!!gifItem) {
+    res.status(200).json(gifItem)
+    return
+  }
+  ////
+  // Fall through
+  ////
 
-  res.json(gifItem)
+  // Not found
+  res.sendStatus(404)
 }
+
+// TODO: How to delete gifCache and frameCache on deletion?
 
 const deleteGIF = (req, res) => {
-  let gifID = req.params.gifID
+  console.log('gifID: ' + req.params.gifID)
 
-  console.log('gifID: ' + gifID)
+  // Get filename out of database
+  let gifItem = gifDatabase.findItemsByKey('gifID', req.params.gifID)[0]
 
-  // delete gif
+  if (!!gifItem) {
+    // This is not in the database so that it is hidden from the user
+    let gifPath = path.join(gifDir, gifItem.filename)
 
-  res.json(404)
+    // delete file
+    database.deleteFiles(gifPath)
+
+    // remove from database
+    gifDatabase.remove(gifItem)
+
+    res.sendStatus(200)
+    return
+  }
+  ////
+  // Fall through
+  ////
+
+  // Not found in database
+  res.sendStatus(404)
 }
 
-const deleteFrameCache = (req, res) => {
-  let videoID = req.params.videoID
+const gifCache = (videoPath) => {
+  // TODO: does .noAudio() have any impact?
+  ffmpeg(videoPath)
+  .seekInput('1:00')
 
-  console.log('videoID: ' + videoID)
+  .output('1.gif')
+  .seek('1:00')
+  .duration(1)
 
-  // delete frame cache
+  .output('2.gif')
+  .seek('1:00')
+  .duration(1)
 
-  res.json(404)
+  .output('3.gif')
+  .seek('1:00')
+  .duration(1)
+
+  // .on('progress', (progress) => {
+  //   console.log(progress);
+  // })
+  .on('error', (err) => {
+    console.error('An error occurred: ' + err.message);
+  })
+  .on('end', () => {
+    console.log('Processing finished !');
+  })
+  .renice(5)
+  .run()
+  ////
+  // Responses are generated inside ffmpeg callbacks
+  ////
+  return
 }
 
 const postFrameCache = (req, res) => {
   checkBodyForErrors(req, res)
 
   let videoItem = req.body
-  let videoFile = videoItem.filename
-  let videoPath = path.join(videoDir, videoFile)
+  let videoPath = path.join(videoDir, videoItem.filename)
   console.log('videoPath: ' + JSON.stringify(videoPath))
 
   if (fs.existsSync(videoPath)) {
     let videoFrameCache = path.join(frameCacheDir, videoItem.videoID)
+
+    // if cache folder exists, return filenames
+    if (fs.existsSync(videoFrameCache)) {
+      console.log('Listing directory ' + videoFrameCache)
+      res.status(200).json(fs.readdirSync(videoFrameCache))
+      return
+    }
+
     // make storage dir
     database.makeStorageDirs(videoFrameCache)
 
-    // let process = ffmpeg(videoPath)
-    // .on('start', function(commandLine) {
-    //   console.log('Spawned Ffmpeg with command: ' + commandLine)
-    // })
-    // .on('codecData', function(data) {
-    //   console.log('Input is ' + data.audio + ' audio ' +
-    //     'with ' + data.video + ' video')
-    // })
-    // .on('progress', function(progress) {
-    //   console.log('Processing: ' + progress.percent + '% done');
-    // })
-    // .on('end', function(stdout, stderr) {
-    //   console.log('Transcoding succeeded !')
-    // })
-    // .on('error', function(err, stdout, stderr) {
-    //   console.log(err)
-    //   res.status(500).send(err)
-    //   return
-    // })
-    // .renice(5)
-    // .save(path.join(videoFrameCache, 'frame_%03d.bmp'))
-
-
     let process = ffmpeg(videoPath)
-      .on('filenames', function(filenames) {
+      .on('filenames', (filenames) => {
+        console.time('ffmpeg-screenshots')
+
         console.log('Will generate ' + filenames.join(', '))
+        res.status(201).json(filenames)
+        return
       })
-      .on('end', function() {
-        console.log('Screenshots taken');
+      // .on('progress', (progress) => {
+      //   console.log(progress);
+      // })
+      .on('end', () => {
+        console.timeEnd('ffmpeg-screenshots')
+
+        console.log('Frames finished exporting')
+
+        // GIF cache
+        console.log('starting GIF cache')
+        gifCache(videoItem.videoID)
       })
+      .on('error', (err, stdout, stderr) => {
+        console.error('Cannot process video: ' + err.message)
+        // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
+        if(!res.headerSent) res.status(500).json(err.message)
+        return
+      })
+      .renice(5)
       .screenshots({
-        // Will take screens at 20%, 40%, 60% and 80% of the video
+        filename: 'frame%s.bmp',
+        size: '100x?',
+        // timestamps: [30.5, '50%', '01:10.123'],
+        // count = 4 will take screens at 20%, 40%, 60% and 80% of the video
         count: 4,
         folder: videoFrameCache,
       })
-
-    // let options = {
-    //     timestamps: [30.5, '50%', '01:10.123'],
-    //     filename: 'thumbnail-at-%s-seconds.png',
-    //     size: '320x240'
-    //   }
-
+    ////
+    // Responses are generated inside ffmpeg callbacks
+    ////
+    return
   }
+  ////
+  // Fall through
+  ////
 
+  // Not found
   res.sendStatus(404)
 }
+
+const deleteFrameCache = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)
+  let videoFrameCache = path.join(frameCacheDir, req.params.videoID)
+
+  // if cache folder exists, delete all files inside
+  if (fs.existsSync(videoFrameCache)) {
+    console.log('Removing directory ' + videoFrameCache)
+
+    try {
+      fs.removeSync(videoFrameCache)
+    } catch (err) {
+      console.error(err)
+      res.sendStatus(500)
+      return
+    }
+
+    console.log('success!')
+    res.sendStatus(200)
+    return
+  }
+  ////
+  // Fall through
+  ////
+
+  // Not found
+  res.sendStatus(404)
+}
+
 
 // Reminder: Body only parses when header Content-Type: application/json
 
@@ -190,6 +370,10 @@ router.put('/gif', putVideoToGIF)
 // get all gifs
 router.get('/gif', getGIFList)
 
+// download gif file
+// this can be handled by the public directory
+// router.get('/gif/:gifID', getGIFFile)
+
 // get gif info
 router.get('/gif/:gifID', getGIFInfo)
 
@@ -199,8 +383,8 @@ router.get('/gif/:gifID', getGIFInfo)
 // delete gif
 router.delete('/gif/:gifID', deleteGIF)
 
-// provide frame cache on pull state (do not push state to other resources)
-// detect state simply by looking at existing files (it is a cache, not a store)
+// provide frame cache state on post (no get)
+// detect state by looking at existing folder (it is a cache, not a store)
 // include low-q gif cache
 // select video file / edit video again -> return frame cache
 router.post('/framecache', postFrameCache)

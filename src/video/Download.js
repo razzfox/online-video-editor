@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import './Download.css';
 
-// videoAPI for reference  :
+// videoAPI for reference:
 // app.get('/video', sendVideoList)
 // app.get('/video/:videoID', sendVideoInfo)
 // app.get('/video/download/:videoID', sendVideoFile)
 // app.get('/video/download/progress', downloadProgress)
-//
 // app.post('/video/download', bodyParser.json(), downloadFromURL)
-//
 // app.delete('/video/:videoID', deleteVideoFile)
 
 
@@ -20,6 +18,19 @@ import './Download.css';
 class Download extends Component {
   constructor(props) {
     super()
+
+    // Note: do not mix setState() with this.state to access state values.
+    // Since state changes are asynchronous, the values resolved by this.state
+    // could easily be stale values when the given setState is applied.
+    // Use callback setState( (state, props) => ({ propA: state.propB + 1 }) )
+    // to ensure that the update is applied using the most recent state values.
+    //
+    // For example, a progress bar may try 'this.state.progress + 1', which will
+    // resolve to a number (57, 58, 59, 60) before the setState message is sent.
+    // As asynchronsous updates occur, the values will be applied to the state
+    // out of order (57, 59, 58, 60), which causes a bouncy progress bar UI.
+    //
+    // Setting a value that is not from the state is fine, 'setState({ propA: 100 })'
     this.state = {
       downloadResponse: {},
       downloadProgressList: [],
@@ -29,10 +40,16 @@ class Download extends Component {
       videoAPILocation: 'http://localhost:3080/video/',
       downloadRoute: 'download/',
       progressRoute: 'download/progress',
-      gifAPILocation: 'http://localhost:3080/gif/',
-      cacheRoute: 'cache'
     }
 
+    // React is opinionated about its one-way binding (omnidirectional data flow)
+    // so the views ALWAYS reflect the state. View's input values can not change.
+    // Only functions can update the state. So, views must trigger functions
+    // to update the state (such as onChange, onClick).
+
+    // binding here in the constructor means that there is one function created
+    // whereas binding in the render function will create a new function object
+    // each time it runs (on every render)
     this.inputURLChange = this.inputURLChange.bind(this)
     this.postVideoURL = this.postVideoURL.bind(this)
     this.getAvailableVideoList = this.getAvailableVideoList.bind(this)

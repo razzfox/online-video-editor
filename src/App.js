@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import Download from './video/Download';
+import GIF from './gif/GIF';
 
 
 // Don't build a web component alongside the data. Build ONLY the data.
@@ -28,8 +29,8 @@ class App extends Component {
           <h1 className="App-logo">⭐</h1>
           <h2>Razz's GIF Generator</h2>
         </div>
-        <GIFGenerator />
-        // <Download />
+        <GIF />
+        <Download />
       </div>
     );
   }

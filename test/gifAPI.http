@@ -1,0 +1,28 @@
+@host = http://localhost:3080
+
+PUT {{host}}/gif
+Content-Type: application/json
+
+//  "filename":"Cotton Candy Princess Tutorial _ Special Treats 😆-j1B7cjVVjyM.mp4",
+{
+  "filename": "Come Get Your Juice-MMXAjhAopyg.mp4",
+  "start":4.5,
+  "length":3,
+  "options":{}
+}
+####
+GET {{host}}/gif
+####
+GET {{host}}/gif/ID
+####
+DELETE {{host}}/gif/d05b763a-610a-402f-9994-3239f6c0ff6d
+####
+POST {{host}}/framecache
+Content-Type: application/json
+
+{
+  "videoID": "d4c96f81-cbc3-4047-add8-80b114513b7c",
+  "filename": "Come Get Your Juice-MMXAjhAopyg.mp4"
+}
+####
+DELETE {{host}}/framecache/d4c96f81-cbc3-4047-add8-80b114513b7c

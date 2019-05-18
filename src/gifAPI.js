@@ -152,7 +152,7 @@ const putVideoToGIF = (req, res) => {
       .on('error', (err, stdout, stderr) => {
         console.error('Cannot process video: ' + err.message)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(!res.headerSent) res.status(500).json(err.message)
+        if(res.headerSent) res.status(500).json(err.message)
         return
       })
       .renice(5)
@@ -267,7 +267,9 @@ const postFrameCache = (req, res) => {
 
   let videoItem = req.body
   let videoPath = path.join(videoDir, videoItem.filename)
-  console.log('videoPath: ' + JSON.stringify(videoPath))
+
+  console.log('videoID: ' + videoItem.videoID)
+  console.log('videoPath: ' + videoPath)
 
   if (fs.existsSync(videoPath)) {
     let videoFrameCache = path.join(frameCacheDir, videoItem.videoID)
@@ -300,12 +302,12 @@ const postFrameCache = (req, res) => {
 
         // GIF cache
         console.log('starting GIF cache')
-        gifCache(videoItem.videoID)
+        // gifCache(videoPath)
       })
       .on('error', (err, stdout, stderr) => {
         console.error('Cannot process video: ' + err.message)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(!res.headerSent) res.status(500).json(err.message)
+        if(res.headerSent) res.status(500).json(err.message)
         return
       })
       .renice(5)
@@ -388,6 +390,9 @@ router.delete('/gif/:gifID', deleteGIF)
 // include low-q gif cache
 // select video file / edit video again -> return frame cache
 router.post('/framecache', postFrameCache)
-
 // delete frame cache
 router.delete('/framecache/:videoID', deleteFrameCache)
+
+// TODO: animated grid
+// router.post('/gifcache', postGIFCache)
+// router.delete('/gifcache/:videoID', deleteGIFCache)

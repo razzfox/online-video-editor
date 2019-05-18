@@ -1,0 +1,23 @@
+@host = http://localhost:3080
+
+GET {{host}}/video
+####
+GET {{host}}/video/629612b0-7a04-434a-9379-157c13dc0630
+####
+GET {{host}}/video/download/progress
+####
+POST {{host}}/video/download
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=MMXAjhAopyg"}
+####
+DELETE {{host}}/video/9f77a933-a382-480d-aa9a-964bcc08aa20
+####
+####
+POST {{host}}/videoInfo
+Content-Type: application/json
+
+{
+  "filename": "Come Get Your Juice-MMXAjhAopyg.mp4"
+}
+####

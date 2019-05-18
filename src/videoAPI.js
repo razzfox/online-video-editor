@@ -173,7 +173,7 @@ const getVideoList = (req, res) => {
 const checkBodyForErrors = (req, res) => {
   // Bad Content-Type
   if(req.headers['content-type'] !== 'application/json') {
-    let error = 'Content-Type not JSON'
+    let error = 'Content-Type is not application/json'
     console.error(error)
     res.status(400).send(error)
     return
@@ -272,8 +272,6 @@ const downloadFromURL = (req, res) => {
     // video size should not be 0 here.
     if (videoDownload.size) {
       videoDownload.progress = (videoDownload.position / videoDownload.size * 100).toFixed(2);
-      process.stdout.cursorTo(0);
-      process.stdout.clearLine(1);
       process.stdout.write(videoDownload.progress + '%');
     }
   });
@@ -318,9 +316,13 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Downloader error
-    if(!res.headerSent) res.sendStatus(500)
+    if(res.headerSent) res.sendStatus(500)
     return
   })
+  ////
+  // Responses are generated inside ffmpeg callbacks
+  ////
+  return
 }
 
   // Makes a network call for info?

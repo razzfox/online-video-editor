@@ -42,17 +42,6 @@ const bodyParser = require('body-parser')
 // approach, but it's not built into express, and the example map function given
 // needs more work implementing.
 
-////
-// React provides its own server for rapid development, but when compiled
-// for production, express can staticly serve the build folder files.
-
-// Catch-all middleware for static files in this folder
-// app.use(express.static('public'))
-
-// Although frontend will be precompiled by react, express may be interested
-// in the frontend requests for preemptive caching and logging purposes.
-// app.get('/', site.index)
-
 console.log('Starting Video API');
 
 // Process Current Working Directory
@@ -72,9 +61,11 @@ const cacheRoute = 'cache'
 ////
 
 // Note: move up one to parent of 'src' directory; path library manages system delimeters
-const videoDir = path.join(__dirname, '..', '/public/videos/')
-const thumbnailDir = path.join(__dirname, '..', '/public/thumbnails/')
-const videoDatabaseFile = path.join(__dirname, '..', '/videoDatabase.json')
+const publicLocation = path.join(__dirname, '..', 'public')
+
+const videoDir = path.join(publicLocation, 'videos')
+const thumbnailDir = path.join(publicLocation, 'thumbnails')
+const videoDatabaseFile = path.join(__dirname, '..', 'videoDatabase.json')
 
 // initialize storage
 database.makeStorageDirs(videoDir, thumbnailDir)
@@ -407,22 +398,34 @@ app.use(bodyParser.json())
 
 // DEBUG: middleware that prints every request
 app.use(function (req, res, next) {
-  console.log(`${req.method} ${req.url}`) // populated!
-  // Express header function
+  console.log(`${req.method} ${req.url}`)
+
+  // Express get-header function
   // console.log('Content-Type: ' + req.get('Content-Type'))
-  // Node header property
+
+  // Node req obj header property
   console.log('Content-Type: ' + req.headers['content-type'])
-  console.log('body: ' + JSON.stringify(req.body)) // populated!
+  console.log('body: ' + JSON.stringify(req.body))
   next()
 })
 
 // a middleware with no mount path; gets executed for every request to the app
 app.use(function(req, res, next) {
+  // Decode URL
+  // req.url = decodeURI(req.url)
+
   res.setHeader('charset', 'utf-8')
   // Disable all caching (HTTP 1.1)
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
   next()
 })
+
+////
+// React provides its own server for rapid development, but when compiled
+// for production, express can staticly serve the build folder files.
+
+// Catch-all middleware for static files in this folder (decodes URL internally)
+app.use(express.static(publicLocation))
 
 
 ////

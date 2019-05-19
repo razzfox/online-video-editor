@@ -21,3 +21,5 @@ Content-Type: application/json
   "filename": "Come Get Your Juice-MMXAjhAopyg.mp4"
 }
 ####
+# Public
+GET {{host}}/thumbnails/Come%20Get%20Your%20Juice-MMXAjhAopyg.jpg

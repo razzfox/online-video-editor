@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import Download from './video/Download';
+// import Download from './video/Download';
 import GIF from './gif/GIF';
 
 
@@ -30,7 +30,7 @@ class App extends Component {
           <h2>Razz's GIF Generator</h2>
         </div>
         <GIF />
-        <Download />
+        {/* <Download /> */}
       </div>
     );
   }

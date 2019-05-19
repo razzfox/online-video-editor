@@ -13,19 +13,20 @@ const router = module.exports = express.Router()
 console.log('Starting GIF API');
 
 // Process Current Working Directory
-const __processDir = path.dirname(process.mainModule.filename)
-console.log('__processDir: ' + __processDir);
-console.log('__dirname: ' + __dirname);
+// const __processDir = path.dirname(process.mainModule.filename)
+// console.log('__processDir: ' + __processDir);
+// console.log('__dirname: ' + __dirname);
 
 ////
 // API
 ////
 
-const videoDir = path.join(__dirname, '..', '/public/videos/')
+const publicLocation = path.join(__dirname, '..', 'public')
+const videoDir = path.join(publicLocation, 'videos')
 
-const gifDir = path.join(__dirname, '..', '/public/gifs/')
-const frameCacheDir = path.join(__dirname, '..', '/public/frameCache/')
-const gifDatabaseFile = path.join(__dirname, '..', '/gifDatabase.json')
+const gifDir = path.join(publicLocation, 'gifs')
+const frameCacheDir = path.join(publicLocation, 'frameCache')
+const gifDatabaseFile = path.join(__dirname, '..', 'gifDatabase.json')
 
 // initialize storage
 database.makeStorageDirs(gifDir, frameCacheDir)

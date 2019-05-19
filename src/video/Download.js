@@ -142,7 +142,7 @@ class Download extends Component {
 
     let data = { url: this.state.videoURL }
 
-    // Note: the mode: "no-cors" option *silently* disables sending the body
+    // Note: the 'no-cors' option *silently* disables sending the body
     fetch(this.state.videoAPILocation + this.state.downloadRoute, {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         headers: {

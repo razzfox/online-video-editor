@@ -343,10 +343,19 @@ const getVideoFrame = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
   console.log('frameStartTime: ' + req.params.frameStartTime)
 
+  let frameStartTime = req.params.frameStartTime
+
+  // Bad Request
+  if(frameStartTime < 0) {
+    let error = 'Frame Start Time is negative: ' + frameStartTime
+    console.error(error)
+    res.status(400).send(error)
+    return
+  }
+
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
-  let frameStartTime = req.params.frameStartTime
 
   // This is not in the database so that it is hidden from the user
   let videoPath = path.join(videoDir, videoItem.filename)

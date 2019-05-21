@@ -109,8 +109,6 @@ class GIF extends Component {
       console.error('Error:', error)
       // TODO: show an error
     })
-
-  event.preventDefault()
   }
 
   deleteGIF(ev) {
@@ -125,8 +123,6 @@ class GIF extends Component {
       console.error('Error:', error)
       // TODO: show an error
     })
-
-  event.preventDefault()
   }
 
   getStateUpdate(apiLocation, stateVariable, callback) {
@@ -144,10 +140,10 @@ class GIF extends Component {
     })
   }
 
-  inputStateUpdate(event, stateVariable, callback) {
-    console.log(`Changed ${stateVariable} to ${event.target.value}`)
+  inputStateUpdate(ev, stateVariable, callback) {
+    console.log(`Changed ${stateVariable} to ${ev.target.value}`)
 
-    this.setState({[stateVariable]: event.target.value}, callback)
+    this.setState({[stateVariable]: ev.target.value}, callback)
   }
 
   render() {
@@ -183,6 +179,7 @@ class GIF extends Component {
             name='start'
             value={this.state.start}
             onChange={(ev) => {
+              if(ev.target.value < 0) return
               this.inputStateUpdate(ev, 'start')
             }}
             />
@@ -194,6 +191,7 @@ class GIF extends Component {
             name='length'
             value={this.state.length}
             onChange={(ev) => {
+              if(ev.target.value < 0) return
               this.inputStateUpdate(ev, 'length')
             }}
             />

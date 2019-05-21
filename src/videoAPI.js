@@ -411,6 +411,9 @@ app.use(function (req, res, next) {
 
 // a middleware with no mount path; gets executed for every request to the app
 app.use(function(req, res, next) {
+  // pass videoDatabase
+  res.locals = { videoDatabase: videoDatabase }
+
   // Decode URL
   // req.url = decodeURI(req.url)
 

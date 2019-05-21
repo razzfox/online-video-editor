@@ -33,28 +33,13 @@ database.makeStorageDirs(gifDir, frameCacheDir)
 const gifDatabase = new database.Database('GIFs', gifDatabaseFile)
 
 
-const checkBodyForErrors = (req, res) => {
-  // Bad Content-Type
-  if(req.headers['content-type'] !== 'application/json') {
-    let error = 'Content-Type not JSON'
-    console.error(error)
-    res.status(400).send(error)
-    return
-  }
+const getVideoInfo = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)  
 
-  // Bad filename
-  if (!req.body.filename) {
-    let error = 'Filename not found in body'
-    console.error(error)
-    res.status(400).send(error)
-    return
-  }
-}
-
-const postVideoInfo = (req, res) => {
-  checkBodyForErrors(req, res)
-
-  let videoItem = req.body
+  // Get filename out of database
+  let videoDatabase = res.locals.videoDatabase
+  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  
   let videoPath = path.join(videoDir, videoItem.filename)
   console.log('videoPath: ' + JSON.stringify(videoPath))
 
@@ -109,23 +94,40 @@ const mergeGIFs = (gifFilenames) => {
 //   command.kill();
 // }, 60000);
 
+const checkBodyForErrors = (req, res) => {
+  // Bad Content-Type
+  if(req.headers['content-type'] !== 'application/json') {
+    let error = 'Content-Type not JSON'
+    console.error(error)
+    res.status(400).send(error)
+    return
+  }
+
+  // TODO: Check for valid GIFSettings
+}
+
 const putVideoToGIF = (req, res) => {
   checkBodyForErrors(req, res)
 
-  let videoItem = req.body
+  let gifRequest = req.body
+  console.log('videoID: ' + gifRequest.videoID)  
+
+  // Get filename out of database
+  let videoDatabase = res.locals.videoDatabase
+  let videoItem = videoDatabase.findItemsByKey('videoID', gifRequest.videoID)[0]
+
   let videoPath = path.join(videoDir, videoItem.filename)
 
-  let gifSettings = new database.GIFSettings(videoItem.start, videoItem.length, videoItem.options)
+  let gifSettings = new database.GIFSettings(gifRequest.start, gifRequest.length, gifRequest.options)
   let gifSettingsJSON = JSON.stringify(gifSettings)
-  console.log('GIF settings: ' + gifSettingsJSON)
+  console.log('GIFSettings: ' + gifSettingsJSON)
 
   // Since there are going to be so many gifs used for previews, we need UUIDs
-  // let gifFilename = `${path.parse(videoItem.filename)}_${videoItem.start}_${videoItem.length}_${videoItem.options.width}_${videoItem.options.loop}_${videoItem.options.fps}_${videoItem.options.bounce}.gif`
   let gifItem = new database.GIFItem(videoItem.videoID, videoItem.title, path.parse(videoItem.filename).name, gifSettings)
 
   // Verify that no gif already in the database matches requested settings
   let gifsUsingVideoID = gifDatabase.findItemsByKey('videoID', videoItem.videoID)
-  if(!gifsUsingVideoID.some(item => JSON.stringify(item.settings) === gifSettingsJSON)) {
+  if(!gifsUsingVideoID.some(item => JSON.stringify(item.gifSettings) === gifSettingsJSON)) {
     let gifPath = path.join(gifDir, gifItem.filename)
     // Note: seek is relative, so it can be called multiple times and video gets
     // decoded while seeking, but seekInput sets the start point, and skips decoding
@@ -263,11 +265,15 @@ const gifCache = (videoPath) => {
   return
 }
 
+// TODO: Implement a count and a basic 'new' parameter
+// TODO: Does ffmpeg skip files that aready exist?
+// I dont think so, I will have to check for each before starting ffmpeg
 const postFrameCache = (req, res) => {
-  checkBodyForErrors(req, res)
-
-  let videoItem = req.body
-  let videoPath = path.join(videoDir, videoItem.filename)
+  // console.log(JSON.stringify(res.locals))
+  // Get filename out of database
+  let videoDatabase = res.locals.videoDatabase
+  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let videoPath = path.join(videoDir, videoItem.filename)  
 
   console.log('videoID: ' + videoItem.videoID)
   console.log('videoPath: ' + videoPath)
@@ -333,6 +339,88 @@ const postFrameCache = (req, res) => {
   res.sendStatus(404)
 }
 
+const getVideoFrame = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)
+  console.log('frameStartTime: ' + req.params.frameStartTime)
+
+  // Get filename out of database
+  let videoDatabase = res.locals.videoDatabase
+  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let frameStartTime = req.params.frameStartTime
+
+  // This is not in the database so that it is hidden from the user
+  let videoPath = path.join(videoDir, videoItem.filename)
+  let videoFrameCache = path.join(frameCacheDir, videoItem.videoID)
+
+  if (!!videoItem && fs.existsSync(videoPath)) {
+    // if cache folder does not exist, create it
+    if (!fs.existsSync(videoFrameCache)) {
+      // make storage dir
+      database.makeStorageDirs(videoFrameCache)
+    }
+
+    // if frame exists, send it
+    let requestedFrame = path.join(videoFrameCache, `frame${frameStartTime}.bmp`)
+    if (fs.existsSync(requestedFrame)) {
+      // repsond with requested frame
+      res.status(200).sendFile(requestedFrame)
+      return
+    }
+
+    let process = ffmpeg(videoPath)
+      .on('filenames', (filenames) => {
+        console.time('ffmpeg-screenshots')
+
+        if(filenames[0] !== `frame${frameStartTime}.bmp`) {
+          console.warn(`filenames[0] !== frame${frameStartTime}.bmp`)
+        }
+
+        // console.log('Will generate ' + filenames.join(', '))
+        // res.status(201).json(filenames)
+        // return
+      })
+      // .on('progress', (progress) => {
+      //   console.log(progress);
+      // })
+      .on('end', () => {
+        console.timeEnd('ffmpeg-screenshots')
+
+        console.log('Frames finished exporting')
+
+        // respond with requested frame (support for only one)
+        res.status(201).sendFile(requestedFrame)
+        return
+      })
+      .on('error', (err, stdout, stderr) => {
+        console.error('Cannot process video: ' + err.message)
+        // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
+        if(res.headerSent) res.status(500).json(err.message)
+        return
+      })
+      .renice(-5) // high priority
+      .screenshots({
+        filename: 'frame%s.bmp',
+        size: '100x?',
+        // timestamps: [30.5, '50%', '01:10.123'],
+        timestamps: [frameStartTime],
+        // count = 4 will take screens at 20%, 40%, 60% and 80% of the video
+        folder: videoFrameCache,
+      })
+    ////
+    // Responses are generated inside ffmpeg callbacks
+    ////
+    return
+  }
+  ////
+  // Fall through
+  ////
+  console.log('Video not found')
+  // File does not exist
+  res.sendStatus(404)
+  return
+}
+
+
 const deleteFrameCache = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
   let videoFrameCache = path.join(frameCacheDir, req.params.videoID)
@@ -365,7 +453,7 @@ const deleteFrameCache = (req, res) => {
 // Reminder: Body only parses when header Content-Type: application/json
 
 // analyze video info (length, fps, size)
-router.post('/videoInfo', postVideoInfo)
+router.get('/videoInfo/:videoID', getVideoInfo)
 
 // convert video to gif
 router.put('/gif', putVideoToGIF)
@@ -386,13 +474,18 @@ router.get('/gif/:gifID', getGIFInfo)
 // delete gif
 router.delete('/gif/:gifID', deleteGIF)
 
-// provide frame cache state on post (no get)
-// detect state by looking at existing folder (it is a cache, not a store)
+// provide frame cache state on post (not get)
+// This is because the action may cause new files to be created
+//
 // include low-q gif cache
 // select video file / edit video again -> return frame cache
-router.post('/framecache', postFrameCache)
+router.post('/frameCache/:videoID', postFrameCache)
+
 // delete frame cache
-router.delete('/framecache/:videoID', deleteFrameCache)
+router.delete('/frameCache/:videoID', deleteFrameCache)
+
+// get frame at time in seconds
+router.get('/frameCache/:videoID/:frameStartTime', getVideoFrame)
 
 // TODO: animated grid
 // router.post('/gifcache', postGIFCache)

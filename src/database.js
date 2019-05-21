@@ -1,5 +1,4 @@
 const fs = require('fs')
-const path = require('path')
 const uuidgen = require('./uuidgen.js')
 
 
@@ -14,12 +13,14 @@ class VideoItem {
 }
 
 class GIFItem {
-  constructor(videoID, name, filename, settings) {
+  constructor(videoID, title, filename, gifSettings) {
     this.gifID = uuidgen()
     this.videoID = videoID
-    this.name = name
+    this.title = title
     this.filename = `${filename}_${this.gifID}.gif`
-    this.settings = settings
+    this.gifSettings = gifSettings
+    // Possibly generate a long name when downloading
+    // let gifFilename = `${path.parse(videoItem.filename)}_${gifRequest.start}_${gifRequest.length}_${gifRequest.options.width}_${gifRequest.options.loop}_${gifRequest.options.fps}_${gifRequest.options.bounce}.gif`
   }
 }
 

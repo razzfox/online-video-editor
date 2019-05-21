@@ -97,7 +97,7 @@ class Download extends Component {
 
   deleteVideoID() {
     fetch(this.state.videoAPILocation + this.state.videoID, {
-        method: "DELETE",
+        method: 'DELETE',
     }).then(res => res.ok && res.json())
     .then(response => {
       console.log('Success:', response)
@@ -112,9 +112,9 @@ class Download extends Component {
   // file upload
   // postVideoFile() {
   //   var formData = new FormData();
-  //   var fileField = document.querySelector("input[type='file']");
+  //   var fileField = document.querySelector('input[type='file']');
   //
-  //   // var photos = document.querySelector("input[type='file'][multiple]");
+  //   // var photos = document.querySelector('input[type='file'][multiple]');
   //   //
   //   // formData.append('title', 'My Vegas Vacation');
   //   // for (var i = 0; i < photos.files.length; i++) {
@@ -144,11 +144,11 @@ class Download extends Component {
 
     // Note: the 'no-cors' option *silently* disables sending the body
     fetch(this.state.videoAPILocation + this.state.downloadRoute, {
-        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
         headers: {
-            "Content-Type": "application/json"
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data), // body data type must match "Content-Type" header
+        body: JSON.stringify(data), // body data type must match 'Content-Type' header
     }).then(res => res.ok && res.json())
     .then(response => {
       console.log('Success:', response)
@@ -159,51 +159,51 @@ class Download extends Component {
       this.setState({downloadResponse: JSON.stringify(error)})
     })
 
-    event.preventDefault();
+    event.preventDefault()
   }
 
   render() {
     return (
-      <div className="Download">
-        <h1 className="intro">
+      <div className='Download'>
+        <h1 className='intro'>
           Download Videos from YouTube or other sites!
         </h1>
-        <form id="downloadURLForm" onSubmit={this.postVideoURL}>
-          <label id="downloadURLLabel">
+        <form id='downloadURLForm' onSubmit={this.postVideoURL}>
+          <label id='downloadURLLabel'>
             Video URL:
-            <textarea id="downloadURL" type="text"
+            <textarea id='downloadURL' type='text'
               value={this.state.videoURL}
               onChange={this.inputURLChange} />
           </label>
           <br/>
-          <button id="downloadURLButton" type="submit">Submit URL</button>
+          <button id='downloadURLButton' type='submit'>Submit URL</button>
         </form>
         <a>Download Response</a>
-        <pre id="downloadResponse">{JSON.stringify(this.state.downloadResponse)}</pre>
+        <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
 
-        <form id="deleteVideoIDForm" onSubmit={this.deleteVideoID}>
-          <label id="deleteVideoIDLabel">
+        <form id='deleteVideoIDForm' onSubmit={this.deleteVideoID}>
+          <label id='deleteVideoIDLabel'>
             Delete Video ID:
-            <textarea id="deleteVideoID" type="text"
+            <textarea id='deleteVideoID' type='text'
               value={this.state.videoID}
               onChange={this.videoIDChange} />
           </label>
           <br/>
-          <button id="deleteVideoIDButton" type="submit">Submit Video ID</button>
+          <button id='deleteVideoIDButton' type='submit'>Submit Video ID</button>
         </form>
 
         <form>
           <a>Download Progress</a>
-          <button id="downloadProgressButton"
+          <button id='downloadProgressButton'
             onClick={this.getDownloadProgress}>Get Download Progress</button>
-          <pre id="downloadProgressList">{JSON.stringify(this.state.downloadProgressList)}</pre>
+          <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
         </form>
 
         <form>
           <a>Available Videos</a>
-          <button id="availableVideoButton"
+          <button id='availableVideoButton'
             onClick={this.getAvailableVideoList}>Get Available Videos</button>
-          <pre id="availableVideoList">{JSON.stringify(this.state.availableVideoList)}</pre>
+          <pre id='availableVideoList'>{JSON.stringify(this.state.availableVideoList)}</pre>
         </form>
 
       </div>

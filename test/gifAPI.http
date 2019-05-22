@@ -7,12 +7,13 @@ GET {{host}}/gif
 GET {{host}}/video
 ####
 # @name putGIF
+@videoID = {{videoList.response.body.$[0].videoID}}
+
 PUT {{host}}/gif
 Content-Type: application/json
 
-//  "filename":"Cotton Candy Princess Tutorial _ Special Treats 😆-j1B7cjVVjyM.mp4",
 {
-  "videoID": "d4c96f81-cbc3-4047-add8-80b114513b7c",
+  "videoID": "{{videoID}}",
   "start":4.5,
   "length":3,
   "options":{}
@@ -24,14 +25,14 @@ GET {{host}}/gif/{{gifID}}
 ####
 DELETE {{host}}/gif/{{gifID}}
 ####
-POST {{host}}/framecache/d4c96f81-cbc3-4047-add8-80b114513b7c
+POST {{host}}/framecache/{{videoID}}
 
 ####
-DELETE {{host}}/framecache/d4c96f81-cbc3-4047-add8-80b114513b7c
+DELETE {{host}}/framecache/{{videoID}}
 
 ####
 # Public
 GET {{host}}/gifs/{{filename}}
 
 ####
-GET {{host}}/frameCache/d4c96f81-cbc3-4047-add8-80b114513b7c/0
+GET {{host}}/frameCache/{{videoID}}/0

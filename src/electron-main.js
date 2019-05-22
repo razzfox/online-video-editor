@@ -1,18 +1,20 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
-const url = require('url')
+// const isDev = require('electron-is-dev')
+const isDev = false
 
 // Note: this does not work inside electron's process because youtube-dl
 // uses the spread operator from ES6. remove it from the module youtube-dl.js
 // TODO: This may want to be changed to an npm run script to avoid this problem.
 
 // Spin up the express backend as a **side effect**
-const { videoAPI } = require('./videoAPI.js');
+// TODO: Remove this import, and run node in child process, like react-start below
+const { videoAPI } = require('./videoAPI.js')
 
 // Get port info
-const port = process.env.PORT ? process.env.PORT : 3000;
-process.env.ELECTRON_START_URL = `http://localhost:${port}`;
+const port = process.env.PORT ? process.env.PORT : 3000
+process.env.ELECTRON_START_URL = `http://localhost:${port}`
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -29,17 +31,23 @@ function createWindow () {
   })
 
   // Start React
-  const startUrl = process.env.ELECTRON_START_URL || url.format({
-      pathname: path.join(__dirname, '/public/index.html'),
-      protocol: 'file:',
-      slashes: true
-  })
+  // const startUrl = process.env.ELECTRON_START_URL || url.format({
+  //     pathname: path.join(__dirname, '/public/index.html'),
+  //     protocol: 'file:',
+  //     slashes: true
+  // })
+
+  mainWindow.loadURL(
+		isDev
+			? process.env.ELECTRON_START_URL
+			: `file://${path.join(__dirname, '../build/index.html')}`,
+	)
 
   // and load the index.html of the app.
-  mainWindow.loadURL(startUrl)
+  // mainWindow.loadURL(process.env.ELECTRON_START_URL)
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  isDev && mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -54,30 +62,33 @@ function createWindow () {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 // app.on('ready', createWindow)
-const net = require('net');
-const child_process = require('child_process');
-const client = new net.Socket();
-let createdWindow = false;
-let childProcess;
+const net = require('net')
+const child_process = require('child_process')
+const client = new net.Socket()
+let createdWindow = false
+let childProcess
 
 const tryConnection = () => client.connect({port: port}, () => {
   // 'connect' listener
-  console.log('connection success');
+  console.log('connection success')
   if (!createdWindow) {
-    createWindow();
-    createdWindow = true;
+    createWindow()
+    createdWindow = true
   }
-  client.end();
-});
+  client.end()
+})
 
 client.on('error', (error) => {
-  console.log('connection error');
+  console.log('connection error')
   if (!childProcess) {
-    console.log('running npm run react-start');
+    // TODO: Replace this with the static build version
+    console.log('running npm run react-start')
 
     // Start with color env option because stdio is not a terminal
-    childProcess = child_process.spawn('npm', ['run', 'react-start'], {
-      env: Object.assign(process.env, {FORCE_COLOR: true})
+    // childProcess = child_process.spawn('npm', ['run', 'react-start'], {
+    childProcess = child_process.spawn('npx', ['react-scripts', 'start'], {
+      cwd: path.join(__dirname, '..'),
+      env: Object.assign(process.env, {FORCE_COLOR: true}),
     })
 
     // Remove CLI clear codes
@@ -86,12 +97,11 @@ client.on('error', (error) => {
       console.log(string.replace(/\\033\[2J/g, ''))
     })
   }
-  console.log('trying connection again');
-  setTimeout(tryConnection, 2500);
-});
+  console.log('trying connection again')
+  setTimeout(tryConnection, 2500)
+})
 
-app.on('ready', tryConnection)
-
+app.on('ready', () => {isDev ? tryConnection() : createWindow()})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -116,7 +126,7 @@ app.on('will-quit', function () {
   // console.log('killing child ' + childProcess.pid)
   // childProcess.kill('SIGKILL', (error) => {
   //   if (!!error) {
-  //     console.log('ERROR killing child ' + error);
+  //     console.log('ERROR killing child ' + error)
   //
   //     child_process.spawn('npm', ['stop'], {stdio: [process.stdin, process.stdout, process.stderr]})
   //   }

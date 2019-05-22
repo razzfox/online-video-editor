@@ -1,8 +1,11 @@
 @host = http://localhost:3080
 
+# @name videoList
 GET {{host}}/video
 ####
-GET {{host}}/video/629612b0-7a04-434a-9379-157c13dc0630
+@videoID = {{videoList.response.body.$[0].videoID}}
+@thumbnailFile = {{videoList.response.body.$[0].thumbnailFile}}
+GET {{host}}/video/{{videoID}}
 ####
 GET {{host}}/video/download/progress
 ####
@@ -11,15 +14,11 @@ Content-Type: application/json
 
 {"url": "https://www.youtube.com/watch?v=MMXAjhAopyg"}
 ####
-DELETE {{host}}/video/9f77a933-a382-480d-aa9a-964bcc08aa20
-####
-####
-POST {{host}}/videoInfo
-Content-Type: application/json
+DELETE {{host}}/video/{{videoID}}
 
-{
-  "filename": "Come Get Your Juice-MMXAjhAopyg.mp4"
-}
+####
+GET {{host}}/videoInfo/{{videoID}}
+
 ####
 # Public
-GET {{host}}/thumbnails/Come%20Get%20Your%20Juice-MMXAjhAopyg.jpg
+GET {{host}}/thumbnails/{{thumbnailFile}}

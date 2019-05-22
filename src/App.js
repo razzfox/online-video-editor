@@ -19,6 +19,8 @@ class App extends Component {
   constructor(props) {
     super()
     this.state = {
+      selectedVideoID: new URL(window.location.href).searchParams.get('videoID'),
+      downloadURL: new URL(window.location.href).searchParams.get('download'),
     }
   }
 
@@ -29,7 +31,7 @@ class App extends Component {
           <h1 className="App-logo">⭐</h1>
           <h2>Razz's GIF Generator</h2>
         </div>
-        <GIF />
+        <GIF selectedVideoID={this.state.selectedVideoID} />
         {/* <Download /> */}
       </div>
     );

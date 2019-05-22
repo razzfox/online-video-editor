@@ -26,7 +26,9 @@ class GIF extends Component {
     this.state = {
       videoAPILocation: new URL('video/', backendLocation),
       gifAPILocation: new URL('gif/', backendLocation),
-      gifFileLocation: '/gifs/',
+      // This is currently different for web and electron clients
+      // gifFileLocation: '/gifs/',
+      gifFileLocation: '../public/gifs/',
 
       frameCacheAPILocation: new URL('frameCache/', backendLocation),
 
@@ -47,9 +49,8 @@ class GIF extends Component {
       availableVideoList: [],
       availableGIFList: [],
 
-      // TODO: get selectedVideoID from URL query (?selectedVideoID=)
-      // selectedVideoID: props.selectedVideoID,
-      selectedVideoID: '',
+      // the select element can not have null as a value
+      selectedVideoID: props.selectedVideoID || '',
     }
 
     this.getStateUpdate = this.getStateUpdate.bind(this)
@@ -60,17 +61,17 @@ class GIF extends Component {
 
   componentDidMount() {
     this.getStateUpdate(this.state.videoAPILocation, 'availableVideoList', () => {
-      if(this.state.availableVideoList.length > 0) return {selectedVideoID: this.state.availableVideoList[0]}
+      if(this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].videoID})
     })
     this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
   }
 
   componentWillUpdate(nextProps, nextState) {
     // TODO: Does this slow react down?
-    if(nextState.availableGIFList !== this.state.availableGIFList) {
-      console.log('Updated availableGIFList')
-      
-    }
+    // if(nextState.availableVideoList !== this.state.availableVideoList) {
+    //   console.log('Updated availableVideoList')
+    //   console.log('Consider updating selectedVideoID and any computed values here')
+    // }
   }
 
   putGIF() {
@@ -103,20 +104,6 @@ class GIF extends Component {
       console.log('Success:', response)
 
       this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
-      // this.setState({availableGIFList: [...this.state.availableGIFList, response]})
-    })
-    .catch(error => {
-      console.error('Error:', error)
-      // TODO: show an error
-    })
-  }
-
-  deleteGIF(ev) {
-    fetch(new URL(ev.target.getAttribute('value'), this.state.gifAPILocation), {
-      method: 'DELETE',
-    }).then(res => res)
-    .then(response => {
-      console.log('Success:', response)
       this.setState({availableGIFList: [...this.state.availableGIFList, response]})
     })
     .catch(error => {
@@ -125,10 +112,22 @@ class GIF extends Component {
     })
   }
 
-  getStateUpdate(apiLocation, stateVariable, callback) {
-    // console.log(`Fetch ${apiLocation}, ${stateVariable}`)
-    // console.log(`Fetch response ${res.url} ${res.status} ${stateVariable}`)
+  deleteGIF(ev) {
+    let gifID = ev.target.getAttribute('value')
+    fetch(new URL(gifID, this.state.gifAPILocation), {
+      method: 'DELETE',
+    }).then(res => res)
+    .then(response => {
+      console.log('Success:', response)
+      this.setState({availableGIFList: this.state.availableGIFList.filter(item => item.gifID !== gifID)})
+    })
+    .catch(error => {
+      console.error('Error:', error)
+      // TODO: show an error
+    })
+  }
 
+  getStateUpdate(apiLocation, stateVariable, callback) {
     fetch(apiLocation).then(res => res.json())
     .then(res => {
       console.log(`Response ${stateVariable}: `, res)
@@ -146,19 +145,18 @@ class GIF extends Component {
     this.setState({[stateVariable]: ev.target.value}, callback)
   }
 
+  // takes an array of items, with {id, name} properties
+  DropDownList = props => <select value={props.value} onChange={props.onChange}>{props.data.map((item, index) => <option key={index} value={item.videoID}>{item.title}</option>)}</select>
+  
+  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.gifID} src={this.state.gifFileLocation + item.filename} />)}</div>
+
+  DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.gifID)}>Delete {item.title}</a></li>)}</ul>
+
   render() {
-    // takes an array of items, with {id, name} properties
-    const DropDownList = props => <select value={props.value} onChange={props.onChange}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.name}</option>)}</select>
-    
-    const availableVideoMapping = this.state.availableVideoList.map(item => ({id: item.videoID, name: item.title}))
-    // start list on blank item
-    availableVideoMapping.unshift([null,null])
-
-    const ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.gifID} src={this.state.gifFileLocation + item.filename} />)}</div>
-
-    const DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.gifID)}>{item.title}</a></li>)}</ul>
-    
+    // A purely computed value
     const startFrameSource = (this.state.selectedVideoID && `${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`) || '//:0'
+
+    const displayedGIFs = this.state.availableGIFList.filter(item => item.videoID === this.state.selectedVideoID)
 
     return (
       <div className='section'>
@@ -166,8 +164,8 @@ class GIF extends Component {
           Convert a video
         </h1>
 
-        <DropDownList
-          data={availableVideoMapping}
+        <this.DropDownList
+          data={this.state.availableVideoList}
           value={this.state.selectedVideoID}
           onChange={(ev) => this.inputStateUpdate(ev, 'selectedVideoID')}
         />
@@ -206,16 +204,17 @@ class GIF extends Component {
         <img id='#startFrameIMG' alt='start frame' src={startFrameSource}></img>
 
         <a>Available GIFs</a>
-        <button id='availableVideoButton'
+        <button id='availableGIFButton'
           onClick={(ev) => {
             this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
             ev.preventDefault()
           }}>Get Available GIFs</button>
-        <ImageGrid id='availableGIFList'
-          data={this.state.availableGIFList}
+
+        <this.ImageGrid id='availableGIFList'
+          data={displayedGIFs}
         />
 
-        <DeleteItemGrid id='deleteGIFList'
+        <this.DeleteItemGrid id='deleteGIFList'
           data={this.state.availableGIFList}
           onClick={(ev) => {
             this.deleteGIF(ev)

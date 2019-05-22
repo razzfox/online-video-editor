@@ -1,15 +1,18 @@
-#pip install --upgrade youtube_dl
-
-# this script breaks when the youtube api changes -- stay updated
-npm install youtube-dl
-
-# Warning: electron does not support ES6 (yes, in 2019),
-# so youtube-dl.js needs to remove the spread operator
-
-npm install
+pip install --upgrade youtube_dl
 
 # ffmpeg modules require that ffmpeg is already installed (including all necessary encoding libraries like libmp3lame or libx264
 brew install ffmpeg
 
-# Run API for development
+npm install
+
+####
+# Run API for development in a browser
 bash watchman-simple.sh node src/videoAPI.js
+npm run react-start
+
+# Possibly use 'concurrently' for development
+    "start": "concurrently \"cross-env BROWSER=none npm react-scripts start\" \"wait-on http://localhost:3000 && electron .\"",
+
+####
+# Deploy:
+npm run build

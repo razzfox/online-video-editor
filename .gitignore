@@ -25,6 +25,7 @@ coverage
 
 # production
 build
+electron-gifs-*
 
 # misc
 .DS_Store

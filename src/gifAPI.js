@@ -10,12 +10,12 @@ const express = require('express')
 // This api will add routes to the videoAPI express object
 const router = module.exports = express.Router()
 
-console.log('Starting GIF API');
+console.log('Starting GIF API')
 
 // Process Current Working Directory
 // const __processDir = path.dirname(process.mainModule.filename)
-// console.log('__processDir: ' + __processDir);
-// console.log('__dirname: ' + __dirname);
+// console.log('__processDir: ' + __processDir)
+// console.log('__dirname: ' + __dirname)
 
 ////
 // API
@@ -32,6 +32,8 @@ const gifDatabaseFile = path.join(__dirname, '..', 'gifDatabase.json')
 database.makeStorageDirs(gifDir, frameCacheDir)
 const gifDatabase = new database.Database('GIFs', gifDatabaseFile)
 
+let videoRequestQueue = []
+
 
 const getVideoInfo = (req, res) => {
   console.log('videoID: ' + req.params.videoID)  
@@ -40,21 +42,24 @@ const getVideoInfo = (req, res) => {
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
   
-  let videoPath = path.join(videoDir, videoItem.filename)
-  console.log('videoPath: ' + JSON.stringify(videoPath))
+  // TODO: create a function that checks for the target in database and filesystem
+  if(!!videoItem){
+    let videoPath = path.join(videoDir, videoItem.filename)
+    console.log('videoPath: ' + JSON.stringify(videoPath))
 
-  if (fs.existsSync(videoPath)) {
-    let process = ffmpeg(videoPath)
-      .ffprobe((err, metadata) => {
-        if (err) console.error(err)
+    if (fs.existsSync(videoPath)) {
+      let process = ffmpeg(videoPath)
+        .ffprobe((err, metadata) => {
+          if (err) console.error(err)
 
-        console.dir(metadata)
-        res.json(metadata)
-        return
-      })
+          console.dir(metadata)
+          res.status(200).json(metadata).end()
+          return
+        })
+      }
   } else {
     // Not found
-    res.sendStatus(404)
+    res.sendStatus(404).end()
     return
   }
   ////
@@ -99,7 +104,7 @@ const checkBodyForErrors = (req, res) => {
   if(req.headers['content-type'] !== 'application/json') {
     let error = 'Content-Type not JSON'
     console.error(error)
-    res.status(400).send(error)
+    res.status(400).send(error).end()
     return
   }
 
@@ -140,8 +145,8 @@ const putVideoToGIF = (req, res) => {
         console.time('ffmpeg-' + gifItem.filename)
 
         console.log('starting GIF conversion')
-        res.status(201).json(gifItem)
-        return
+        // res.status(201).json(gifItem).end()
+        // return
       })
       // .on('progress', (progress) => {
       //   console.log(progress);
@@ -151,11 +156,14 @@ const putVideoToGIF = (req, res) => {
 
         // add to database
         gifDatabase.add(gifItem)
+
+        res.status(201).json(gifItem).end()
+        return
       })
       .on('error', (err, stdout, stderr) => {
         console.error('Cannot process video: ' + err.message)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(res.headerSent) res.status(500).json(err.message)
+        if(!res.headersSent) res.status(500).json(err.message).end()
         return
       })
       .renice(5)
@@ -170,7 +178,7 @@ const putVideoToGIF = (req, res) => {
     res.setHeader('Location', gifRoute)
     // File Exists, redirect (302 is the redirect equivalent of 202)
     // 303 means use GET to continue, and 307 means reuse the same request method.
-    res.sendStatus(303)
+    res.sendStatus(303).end()
     return
   }
   ////
@@ -191,7 +199,7 @@ const getGIFInfo = (req, res) => {
 
   let gifItem = gifDatabase.findItemsByKey('gifID', gifID)[0]
   if (!!gifItem) {
-    res.status(200).json(gifItem)
+    res.status(200).json(gifItem).end()
     return
   }
   ////
@@ -220,7 +228,7 @@ const deleteGIF = (req, res) => {
     // remove from database
     gifDatabase.remove(gifItem)
 
-    res.sendStatus(200)
+    res.sendStatus(200).end()
     return
   }
   ////
@@ -228,7 +236,7 @@ const deleteGIF = (req, res) => {
   ////
 
   // Not found in database
-  res.sendStatus(404)
+  res.sendStatus(404).end()
 }
 
 const gifCache = (videoPath) => {
@@ -269,14 +277,13 @@ const gifCache = (videoPath) => {
 // TODO: Does ffmpeg skip files that aready exist?
 // I dont think so, I will have to check for each before starting ffmpeg
 const postFrameCache = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)
+
   // console.log(JSON.stringify(res.locals))
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
   let videoPath = path.join(videoDir, videoItem.filename)  
-
-  console.log('videoID: ' + videoItem.videoID)
-  console.log('videoPath: ' + videoPath)
 
   if (fs.existsSync(videoPath)) {
     let videoFrameCache = path.join(frameCacheDir, videoItem.videoID)
@@ -284,7 +291,7 @@ const postFrameCache = (req, res) => {
     // if cache folder exists, return filenames
     if (fs.existsSync(videoFrameCache)) {
       console.log('Listing directory ' + videoFrameCache)
-      res.status(200).json(fs.readdirSync(videoFrameCache))
+      res.status(200).json(fs.readdirSync(videoFrameCache)).end()
       return
     }
 
@@ -293,10 +300,9 @@ const postFrameCache = (req, res) => {
 
     let process = ffmpeg(videoPath)
       .on('filenames', (filenames) => {
-        console.time('ffmpeg-screenshots')
+        console.time('ffmpeg-screenshots' + filenames.join(','))
 
-        console.log('Will generate ' + filenames.join(', '))
-        res.status(201).json(filenames)
+        res.status(201).json(filenames).end()
         return
       })
       // .on('progress', (progress) => {
@@ -314,7 +320,7 @@ const postFrameCache = (req, res) => {
       .on('error', (err, stdout, stderr) => {
         console.error('Cannot process video: ' + err.message)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(res.headerSent) res.status(500).json(err.message)
+        if(!res.headersSent) res.status(500).json(err.message).end()
         return
       })
       .renice(5)
@@ -336,10 +342,24 @@ const postFrameCache = (req, res) => {
   ////
 
   // Not found
-  res.sendStatus(404)
+  res.sendStatus(404).end()
 }
 
+const cancelIfVideoIDSame = (req, res) => {
+  console.log(videoRequestQueue.length)
+  if(videoRequestQueue.length > 0 ) {
+    let sameVideoID = videoRequestQueue.find((item) => item.videoID === req.params.videoID)
+    if(!!sameVideoID) {
+      sameVideoID.process.kill()
+      videoRequestQueue = videoRequestQueue.filter((item) => item.process !== sameVideoID.process)
+    }
+  }
+}
+
+// Note: Frame Start Time larger than video length will run ffmpeg, but not error (fall through to 404)
 const getVideoFrame = (req, res) => {
+  cancelIfVideoIDSame(req, res)
+
   console.log('videoID: ' + req.params.videoID)
   console.log('frameStartTime: ' + req.params.frameStartTime)
 
@@ -349,7 +369,7 @@ const getVideoFrame = (req, res) => {
   if(frameStartTime < 0) {
     let error = 'Frame Start Time is negative: ' + frameStartTime
     console.error(error)
-    res.status(400).send(error)
+    res.status(400).send(error).end()
     return
   }
 
@@ -371,7 +391,8 @@ const getVideoFrame = (req, res) => {
     // if frame exists, send it
     let requestedFrame = path.join(videoFrameCache, `frame${frameStartTime}.bmp`)
     if (fs.existsSync(requestedFrame)) {
-      // repsond with requested frame
+      // this is asynchronous, so do not call res.end()
+      // respond with requested frame
       res.status(200).sendFile(requestedFrame)
       return
     }
@@ -384,8 +405,15 @@ const getVideoFrame = (req, res) => {
           console.warn(`filenames[0] !== frame${frameStartTime}.bmp`)
         }
 
+        // add to progress queue
+        let videoRequestItem = {
+          process: process,
+          videoID: req.params.videoID,
+        }
+        videoRequestQueue.push(videoRequestItem)
+
         // console.log('Will generate ' + filenames.join(', '))
-        // res.status(201).json(filenames)
+        // res.status(201).json(filenames).end()
         // return
       })
       // .on('progress', (progress) => {
@@ -395,15 +423,18 @@ const getVideoFrame = (req, res) => {
         console.timeEnd('ffmpeg-screenshots')
 
         console.log('Frames finished exporting')
+        // remove from progress queue
+        videoRequestQueue = videoRequestQueue.filter((item) => item.process !== process)
 
-        // respond with requested frame (support for only one)
+        // respond with requested frame (support for only one) (
+        // this is asynchronous, so do not call res.end()
         res.status(201).sendFile(requestedFrame)
         return
       })
       .on('error', (err, stdout, stderr) => {
         console.error('Cannot process video: ' + err.message)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(res.headerSent) res.status(500).json(err.message)
+        if(!res.headersSent) res.status(500).json(err.message).end()
         return
       })
       .renice(-5) // high priority
@@ -425,7 +456,7 @@ const getVideoFrame = (req, res) => {
   ////
   console.log('Video not found')
   // File does not exist
-  res.sendStatus(404)
+  res.sendStatus(404).end()
   return
 }
 
@@ -442,12 +473,12 @@ const deleteFrameCache = (req, res) => {
       fs.removeSync(videoFrameCache)
     } catch (err) {
       console.error(err)
-      res.sendStatus(500)
+      res.sendStatus(500).end()
       return
     }
 
     console.log('success!')
-    res.sendStatus(200)
+    res.sendStatus(200).end()
     return
   }
   ////
@@ -455,15 +486,19 @@ const deleteFrameCache = (req, res) => {
   ////
 
   // Not found
-  res.sendStatus(404)
+  res.sendStatus(404).end()
 }
 
 
-// Reminder: Body only parses when header Content-Type: application/json
+// a middleware with no mount path; gets executed for every request to the app
+// router.use(function (req, res, next) {
+//   next()
+// })
 
 // analyze video info (length, fps, size)
 router.get('/videoInfo/:videoID', getVideoInfo)
 
+// Reminder: Body only parses when header Content-Type: application/json
 // convert video to gif
 router.put('/gif', putVideoToGIF)
 

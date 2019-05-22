@@ -42,12 +42,10 @@ const bodyParser = require('body-parser')
 // approach, but it's not built into express, and the example map function given
 // needs more work implementing.
 
-console.log('Starting Video API');
+console.log('Starting Video API')
 
 // Process Current Working Directory
-const __processDir = path.dirname(process.mainModule.filename)
-console.log('__processDir: ' + __processDir);
-console.log('__dirname: ' + __dirname);
+console.log('__dirname: ' + __dirname)
 
 
 // gifAPI
@@ -94,6 +92,7 @@ let downloadQueue = []
 //     // check for video file
 //     if (fs.existsSync(videoPath)) {
 //       // File sent
+         // this is asynchronous, so do not call res.end()
 //       res.sendFile(videoPath)
 //       return
 //     }
@@ -113,7 +112,7 @@ let downloadQueue = []
 //     res.setHeader('Location', videoRoute)
 //     // File Exists, redirect (302 is the redirect equivalent of 202)
 //     // 303 means use GET to continue, and 307 means reuse the same request method.
-//     res.sendStatus(303)
+//     res.sendStatus(303).end()
 //     return
 //   }
 //   // //
@@ -139,7 +138,7 @@ const getVideoInfo = (req, res) => {
     if (fs.existsSync(videoPath)) {
       console.log(JSON.stringify(videoItem))
       // Video info sent
-      res.json(videoItem)
+      res.status(200).json(videoItem).end()
       return
     } else {
       console.log('Video file not found: ' + videoPath)
@@ -151,7 +150,7 @@ const getVideoInfo = (req, res) => {
   ////
 
   // File does not exist
-  res.sendStatus(404)
+  res.sendStatus(404).end()
   return
 }
 
@@ -166,7 +165,7 @@ const checkBodyForErrors = (req, res) => {
   if(req.headers['content-type'] !== 'application/json') {
     let error = 'Content-Type is not application/json'
     console.error(error)
-    res.status(400).send(error)
+    res.status(400).send(error).end()
     return
   }
 
@@ -174,7 +173,7 @@ const checkBodyForErrors = (req, res) => {
   if (!req.body.url) {
     let error = 'URL not found in body'
     console.error(error)
-    res.status(400).send(error)
+    res.status(400).send(error).end()
     return
   }
 }
@@ -197,7 +196,7 @@ const downloadFromURL = (req, res) => {
     res.setHeader('Location', videoRoute)
     // File Exists, redirect (302 is the redirect equivalent of 202)
     // 303 means use GET to continue, and 307 means reuse the same request method.
-    res.sendStatus(303)
+    res.sendStatus(303).end()
     return
   }
 
@@ -239,8 +238,6 @@ const downloadFromURL = (req, res) => {
     // save video file
     video.pipe(fs.createWriteStream(path.join(videoDir, videoDownload.filename), { flags: 'a' }))
 
-    // URL accepted, processing
-    res.status(202)
 
     // TODO: Return thumbnail and title to client
     // TODO: This is a thumbnail URL, not a filename
@@ -248,7 +245,8 @@ const downloadFromURL = (req, res) => {
     console.log('title: ' + info.title)
     console.log('filename: ' + info._filename)
 
-    res.json(downloadQueue)
+    // URL accepted, processing
+    res.status(202).json(downloadQueue).end()
     return
   });
 
@@ -275,8 +273,7 @@ const downloadFromURL = (req, res) => {
     // add to database
     videoDatabase.add(videoDownload.videoItem)
 
-    // remove from downloadQueue
-    // downloadQueue = downloadQueue.filter((item) => item.video !== video)
+    // remove from downloadQueue (use execution context)
     downloadQueue = downloadQueue.filter((item) => item !== videoDownload)
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
@@ -307,7 +304,7 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Downloader error
-    if(res.headerSent) res.sendStatus(500)
+    if(!res.headersSent) res.sendStatus(500).json(err).end()
     return
   })
   ////
@@ -333,9 +330,7 @@ const downloadFromURL = (req, res) => {
 const getDownloadProgress = (req, res) => {
   // 102 would mean that no information is available. it also may be WebDAV only
   // OK, return progress percent
-  res.status(200)
-
-  res.json(downloadQueue)
+  res.status(200).json(downloadQueue).end()
   return
 }
 
@@ -361,7 +356,7 @@ const deleteVideoFile = (req, res) => {
     // remove from database
     videoDatabase.remove(videoItem)
 
-    res.sendStatus(200)
+    res.sendStatus(200).end()
     return
   } else {
     console.log('Video not found')
@@ -372,7 +367,7 @@ const deleteVideoFile = (req, res) => {
   ////
 
   // File does not exist
-  res.sendStatus(404)
+  res.sendStatus(404).end()
   return
 }
 

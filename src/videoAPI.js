@@ -9,7 +9,7 @@
 // test the command on the right
 // allow client to ask for thumbnail 'grid'...
 
-const fs = require('fs')
+const fs = require('fs-extra')
 const path = require('path')
 
 const database = require('./database.js')
@@ -283,11 +283,20 @@ const downloadFromURL = (req, res) => {
       if (err) console.error(err);
       console.log('thumbnail file downloaded:', files);
 
-      videoDownload.videoItem.thumbnailFile = files[0]
-      videoDatabase.saveToDisk()
-
       // WARNING: The cwd option does not work here. Workaround to move the file
-      fs.renameSync(files[0], path.join(thumbnailDir, files[0]))
+      // WARNING: Fix a really shitty problem with unicode/emoji
+      let thumbFilename = path.parse(files[0])
+      let videoFilename = path.parse(videoDownload.videoItem.filename)
+      let emojiCompatibleFilename = `${videoFilename.name}${thumbFilename.ext}`
+
+      try {
+        fs.renameSync(emojiCompatibleFilename, path.join(thumbnailDir, emojiCompatibleFilename))
+        videoDownload.videoItem.thumbnailFile = emojiCompatibleFilename
+      } catch (error) {
+        console.error(error)
+      }
+
+      videoDatabase.saveToDisk()
     })
 
     // TODO: Call gifAPI to begin frame cache

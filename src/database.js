@@ -55,6 +55,8 @@ class Database {
       this.databaseStore = JSON.parse(fs.readFileSync(this.databaseFile))
 
       console.log('Database ' + this.name + ' read from ' + this.databaseFile);
+    } else {
+      console.log('No Database File')
     }
   }
 

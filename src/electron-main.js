@@ -1,20 +1,16 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
-// const isDev = require('electron-is-dev')
-const isDev = false
 
-// Note: this does not work inside electron's process because youtube-dl
-// uses the spread operator from ES6. remove it from the module youtube-dl.js
-// TODO: This may want to be changed to an npm run script to avoid this problem.
+// Get env info
+const isDev = process.env.DEV || (process.env.DEV = false)
+
+const port = process.env.PORT ? process.env.PORT : 3000
+process.env.ELECTRON_START_URL = `http://localhost:${port}`
 
 // Spin up the express backend as a **side effect**
 // TODO: Remove this import, and run node in child process, like react-start below
 const { videoAPI } = require('./videoAPI.js')
-
-// Get port info
-const port = process.env.PORT ? process.env.PORT : 3000
-process.env.ELECTRON_START_URL = `http://localhost:${port}`
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

@@ -356,7 +356,6 @@ const cancelIfVideoIDSame = (req, res) => {
   }
 }
 
-// Note: Frame Start Time larger than video length will run ffmpeg, but not error (fall through to 404)
 const getVideoFrame = (req, res) => {
   cancelIfVideoIDSame(req, res)
 
@@ -364,18 +363,20 @@ const getVideoFrame = (req, res) => {
   console.log('frameStartTime: ' + req.params.frameStartTime)
 
   let frameStartTime = req.params.frameStartTime
+  
+  // Get filename out of database
+  let videoDatabase = res.locals.videoDatabase
+  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
 
   // Bad Request
+  // TODO: test if length is longer than video
+  // if(frameStartTime < 0 || frameStartTime > videoItem.length) {
   if(frameStartTime < 0) {
-    let error = 'Frame Start Time is negative: ' + frameStartTime
+    let error = 'Frame Start Time is out of video range: ' + frameStartTime
     console.error(error)
     res.status(400).send(error).end()
     return
   }
-
-  // Get filename out of database
-  let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
 
   // This is not in the database so that it is hidden from the user
   let videoPath = path.join(videoDir, videoItem.filename)
@@ -389,11 +390,13 @@ const getVideoFrame = (req, res) => {
     }
 
     // if frame exists, send it
-    let requestedFrame = path.join(videoFrameCache, `frame${frameStartTime}.bmp`)
-    if (fs.existsSync(requestedFrame)) {
+    let frameFilename = `frame${frameStartTime}.bmp`
+    let frameFilenamePath = path.join(videoFrameCache, frameFilename)
+    if (fs.existsSync(frameFilenamePath)) {
       // this is asynchronous, so do not call res.end()
       // respond with requested frame
-      res.status(200).sendFile(requestedFrame)
+      res.setHeader('Content-Disposition', `inline; filename="${frameFilename}"`)
+      res.status(200).sendFile(frameFilenamePath)
       return
     }
 
@@ -401,8 +404,8 @@ const getVideoFrame = (req, res) => {
       .on('filenames', (filenames) => {
         console.time('ffmpeg-screenshots')
 
-        if(filenames[0] !== `frame${frameStartTime}.bmp`) {
-          console.warn(`filenames[0] !== frame${frameStartTime}.bmp`)
+        if(filenames[0] !== frameFilename) {
+          console.warn(`${filenames[0]} !== ${frameFilename}`)
         }
 
         // add to progress queue
@@ -428,7 +431,8 @@ const getVideoFrame = (req, res) => {
 
         // respond with requested frame (support for only one) (
         // this is asynchronous, so do not call res.end()
-        res.status(201).sendFile(requestedFrame)
+        res.setHeader('Content-Disposition', `inline; filename="${frameFilename}"`)
+        res.status(201).sendFile(frameFilenamePath)
         return
       })
       .on('error', (err, stdout, stderr) => {
@@ -439,7 +443,8 @@ const getVideoFrame = (req, res) => {
       })
       .renice(-5) // high priority
       .screenshots({
-        filename: 'frame%s.bmp',
+        // filename: 'frame%s.bmp',
+        filename: frameFilename,
         size: '100x?',
         // timestamps: [30.5, '50%', '01:10.123'],
         timestamps: [frameStartTime],

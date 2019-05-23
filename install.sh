@@ -7,12 +7,14 @@ npm install
 
 ####
 # Run API for development in a browser
-bash watchman-simple.sh node src/videoAPI.js
-npm run react-start
+npm run dev
+
+# Run in electron
+npm run start
 
 # Possibly use 'concurrently' for development
     "start": "concurrently \"cross-env BROWSER=none npm react-scripts start\" \"wait-on http://localhost:3000 && electron .\"",
 
 ####
-# Deploy:
+# Deploy electron app:
 npm run build

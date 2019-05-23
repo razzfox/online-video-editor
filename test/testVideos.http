@@ -1,0 +1,32 @@
+@host = http://localhost:3080
+
+# @name "Come Get Your Juice"
+POST {{host}}/video/download
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=MMXAjhAopyg"}
+####
+# @name "Cotton Candy Princess Tutorial / Special Treats 😆"
+POST {{host}}/video/download
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=j1B7cjVVjyM"}
+####
+# @name "Chingiz 🇦🇿 and Sergey Lazarev 🇷🇺get pumped for the Grand Final"
+POST {{host}}/video/download
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=8JCO_Ey6wno"}
+####
+# @name "Only Slightly Exaggerated | Travel Oregon"
+POST {{host}}/video/download
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=doVV1a7XgyQ"}
+####
+# @name "Big Buck Bunny"
+POST {{host}}/video/download
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=YE7VzlLtp-4"}
+####

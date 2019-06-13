@@ -3,6 +3,9 @@
 watchman-add() {
   watchman watch .
   watchman watch-list
+
+  # clear the log so the last run do not cause confusion
+  printf '\n%.0s' {1..10} >> /usr/local/var/run/watchman/${USER}-state/log
   
   watchman -- trigger . "$WATCHNAME" '**/*.js' -- $@
   watchman trigger-list .

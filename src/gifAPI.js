@@ -40,7 +40,7 @@ const getVideoInfo = (req, res) => {
 
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let videoItem = videoDatabase.databaseStore[req.params.videoID]
   
   // TODO: create a function that checks for the target in database and filesystem
   if(!!videoItem){
@@ -115,11 +115,11 @@ const putVideoToGIF = (req, res) => {
   checkBodyForErrors(req, res)
 
   let gifRequest = req.body
-  console.log('videoID: ' + gifRequest.videoID)  
+  console.log('videoID: ' + gifRequest.id)
 
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.findItemsByKey('videoID', gifRequest.videoID)[0]
+  let videoItem = videoDatabase.databaseStore[gifRequest.id]
 
   let videoPath = path.join(videoDir, videoItem.filename)
 
@@ -128,11 +128,12 @@ const putVideoToGIF = (req, res) => {
   console.log('GIFSettings: ' + gifSettingsJSON)
 
   // Since there are going to be so many gifs used for previews, we need UUIDs
-  let gifItem = new database.GIFItem(videoItem.videoID, videoItem.title, path.parse(videoItem.filename).name, gifSettings)
+  let gifItem = new database.GIFItem(videoItem.id, videoItem.title, path.parse(videoItem.filename).name, gifSettings)
 
   // Verify that no gif already in the database matches requested settings
-  let gifsUsingVideoID = gifDatabase.findItemsByKey('videoID', videoItem.videoID)
-  if(!gifsUsingVideoID.some(item => JSON.stringify(item.gifSettings) === gifSettingsJSON)) {
+  let gifsUsingVideoID = gifDatabase.findItemsByKey('videoID', videoItem.id)
+  let matchingGIFSettings = gifsUsingVideoID.find(item => JSON.stringify(item.gifSettings) === gifSettingsJSON)
+  if(!matchingGIFSettings) {
     let gifPath = path.join(gifDir, gifItem.filename)
     // Note: seek is relative, so it can be called multiple times and video gets
     // decoded while seeking, but seekInput sets the start point, and skips decoding
@@ -172,7 +173,7 @@ const putVideoToGIF = (req, res) => {
       // provide multiple file sizes (and gifv)
   } else {
     // existing GIF found
-    let gifRoute = path.join(req.route.path, videoItem.videoID)
+    let gifRoute = path.join(req.route.path, matchingGIFSettings.id)
     console.log('Redirect client to: ' + gifRoute);
 
     res.setHeader('Location', gifRoute)
@@ -189,15 +190,15 @@ const putVideoToGIF = (req, res) => {
 
 const getGIFList = (req, res) => {
   console.log('sending database JSON')
-  res.json(gifDatabase.databaseStore)
+  res.json(Object.values(gifDatabase.databaseStore))
 }
 
 const getGIFInfo = (req, res) => {
-  let gifID = req.params.gifID
+  console.log('gifID: ' + req.params.gifID)
 
-  console.log('gifID: ' + gifID)
+  // Get filename out of database
+  let gifItem = gifDatabase.databaseStore[req.params.gifID]
 
-  let gifItem = gifDatabase.findItemsByKey('gifID', gifID)[0]
   if (!!gifItem) {
     res.status(200).json(gifItem).end()
     return
@@ -216,7 +217,7 @@ const deleteGIF = (req, res) => {
   console.log('gifID: ' + req.params.gifID)
 
   // Get filename out of database
-  let gifItem = gifDatabase.findItemsByKey('gifID', req.params.gifID)[0]
+  let gifItem = gifDatabase.databaseStore[req.params.gifID]
 
   if (!!gifItem) {
     // This is not in the database so that it is hidden from the user
@@ -282,11 +283,11 @@ const postFrameCache = (req, res) => {
   // console.log(JSON.stringify(res.locals))
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let videoItem = videoDatabase.databaseStore[req.params.videoID]
   let videoPath = path.join(videoDir, videoItem.filename)  
 
   if (fs.existsSync(videoPath)) {
-    let videoFrameCache = path.join(frameCacheDir, videoItem.videoID)
+    let videoFrameCache = path.join(frameCacheDir, videoItem.id)
 
     // if cache folder exists, return filenames
     if (fs.existsSync(videoFrameCache)) {
@@ -346,9 +347,9 @@ const postFrameCache = (req, res) => {
 }
 
 const cancelIfVideoIDSame = (req, res) => {
-  console.log(videoRequestQueue.length)
+  console.log('videoRequestQueue length', videoRequestQueue.length)
   if(videoRequestQueue.length > 0 ) {
-    let sameVideoID = videoRequestQueue.find((item) => item.videoID === req.params.videoID)
+    let sameVideoID = videoRequestQueue.find((item) => item.videoItem.id === req.params.videoID)
     if(!!sameVideoID) {
       sameVideoID.process.kill()
       videoRequestQueue = videoRequestQueue.filter((item) => item.process !== sameVideoID.process)
@@ -366,7 +367,7 @@ const getVideoFrame = (req, res) => {
   
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let videoItem = videoDatabase.databaseStore[req.params.videoID]
 
   // Bad Request
   // TODO: test if length is longer than video
@@ -380,7 +381,7 @@ const getVideoFrame = (req, res) => {
 
   // This is not in the database so that it is hidden from the user
   let videoPath = path.join(videoDir, videoItem.filename)
-  let videoFrameCache = path.join(frameCacheDir, videoItem.videoID)
+  let videoFrameCache = path.join(frameCacheDir, videoItem.id)
 
   if (!!videoItem && fs.existsSync(videoPath)) {
     // if cache folder does not exist, create it
@@ -396,7 +397,11 @@ const getVideoFrame = (req, res) => {
       // this is asynchronous, so do not call res.end()
       // respond with requested frame
       res.setHeader('Content-Disposition', `inline; filename="${frameFilename}"`)
+      // Note: sendFile's cacheControl and maxAge options only work if the cache-control header has not been set
+      // so it is more reliable to overwrite it without checking
+      res.setHeader("Cache-Control", `public, max-age=${res.locals.maxAgeSeconds}`)
       res.status(200).sendFile(frameFilenamePath)
+      console.log('content-type', res.get('Content-Type'))
       return
     }
 
@@ -410,8 +415,8 @@ const getVideoFrame = (req, res) => {
 
         // add to progress queue
         let videoRequestItem = {
-          process: process,
-          videoID: req.params.videoID,
+          process,
+          videoItem,
         }
         videoRequestQueue.push(videoRequestItem)
 
@@ -507,7 +512,7 @@ router.get('/videoInfo/:videoID', getVideoInfo)
 // convert video to gif
 router.put('/gif', putVideoToGIF)
 
-// get all gifs
+// get all gifs as array
 router.get('/gif', getGIFList)
 
 // download gif file

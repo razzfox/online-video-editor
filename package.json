@@ -20,12 +20,12 @@
   "homepage": "./",
   "main": "src/electron-main.js",
   "scripts": {
-    "start": "DEV=true electron .",
-    "dev": "npm run react-start & DEV=true bash watchman-simple.sh node src/videoAPI.js; npm run react-stop",
+    "start": "electron .",
+    "dev": "npm run react-start & bash watchman-simple.sh node src/videoAPI.js; npm run react-stop",
     "build": "react-scripts build && electron-packager . --overwrite",
     "build-update": "react-scripts build && cp -r build src electron-gifs-darwin-x64/electron-gifs.app/Contents/Resources/app/",
     "test": "react-scripts test --env=jsdom",
-    "react-start": "DEV=true BROWSER=none react-scripts start && npm run react-stop",
+    "react-start": "react-scripts start && npm run react-stop",
     "react-stop": "pkill -f 'start.js'"
   }
 }

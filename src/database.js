@@ -1,14 +1,20 @@
 const fs = require('fs-extra')
 const uuidgen = require('./uuidgen.js')
 
+const versionID = '0.1'
+
 
 // Database classes
 class VideoItem {
-  constructor(url, title, filename) {
+  constructor(url, title, filename, thumbnailFilename) {
     this.videoID = uuidgen()
     this.url = url
     this.title = title
     this.filename = filename
+    // TODO: make this an options object
+    this.thumbnailFilename = thumbnailFilename
+    // TODO: add more fields to reduce JS engine class mutations (speedup)
+    // example: uploaded by, last used date, filesize
   }
 }
 
@@ -18,7 +24,14 @@ class GIFItem {
     this.videoID = videoID
     this.title = title
     this.filename = `${filename}_${this.gifID}.gif`
+
+    // TODO: make this an options object
     this.gifSettings = gifSettings
+
+    // TODO: add fields to reduce JS engine class mutations (speedup)
+    // example: created by, creation date, filesize
+
+
     // Possibly generate a long name when downloading
     // let gifFilename = `${path.parse(videoItem.filename)}_${gifRequest.start}_${gifRequest.length}_${gifRequest.options.width}_${gifRequest.options.loop}_${gifRequest.options.fps}_${gifRequest.options.bounce}.gif`
   }
@@ -41,16 +54,19 @@ class GIFSettings {
 class Database {
   constructor(name, databaseFile) {
     this.name = name
+    this.versionID = versionID
     this.databaseFile = databaseFile
-    // could name this: data, store, all, items, allItems
-    // want to reduce name collisions and confusion during syntax highlighting
+    // could name this: data, store, all, items, allItems, but we want to reduce name collisions, so be more specific
     this.databaseStore = []
 
+    // TODO: make this a manual action
     // restore database from disk
     this.restoreFromDisk()
   }
 
   restoreFromDisk() {
+    // TODO: write and restore the entire database object, and check versionID against this file's versionID
+    // possibly process this file, and create new objects from it, maybe when version changes
     if (fs.existsSync(this.databaseFile)) {
       this.databaseStore = JSON.parse(fs.readFileSync(this.databaseFile))
 

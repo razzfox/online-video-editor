@@ -2,9 +2,6 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 
-// Get env info
-const isDev = process.env.DEV || (process.env.DEV = false)
-
 const port = process.env.PORT ? process.env.PORT : 3000
 process.env.ELECTRON_START_URL = `http://localhost:${port}`
 
@@ -34,7 +31,7 @@ function createWindow () {
   // })
 
   mainWindow.loadURL(
-		isDev
+		process.env.NODE_ENV === 'production'
 			? process.env.ELECTRON_START_URL
 			: `file://${path.join(__dirname, '../build/index.html')}`,
 	)
@@ -43,7 +40,7 @@ function createWindow () {
   // mainWindow.loadURL(process.env.ELECTRON_START_URL)
 
   // Open the DevTools.
-  isDev && mainWindow.webContents.openDevTools()
+  process.env.NODE_ENV === 'development' && mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {

@@ -76,59 +76,11 @@ let downloadQueue = []
 // Route functions
 ////
 
-// this can be handled by the public directory
-// This is a tad more than a plain GET request because I don't want to expose
-// filenames and paths to the user
-// const getVideoFile = (req, res) => {
-//   console.log('videoID: ' + req.params.videoID)
-//
-//   // Get video filename out of database
-//   let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
-//
-//   if (!!videoItem) {
-//     let videoPath = path.join(videoDir, videoItem.filename)
-//
-//
-//     // check for video file
-//     if (fs.existsSync(videoPath)) {
-//       // File sent
-         // this is asynchronous, so do not call res.end()
-//       res.sendFile(videoPath)
-//       return
-//     }
-//   }
-//   ////
-//   // Fall through
-//   ////
-//
-//   // Redirect if the frontend GET /video/download/ instead of GET /video
-//   if(videoID === 'download') {
-//     console.error('Can not GET /video/download/')
-//
-//     // Go to parent route / remove 'download' from path
-//     let videoRoute = path.join(req.route.path, '..')
-//     console.log('Redirect client to: ' + videoRoute)
-//
-//     res.setHeader('Location', videoRoute)
-//     // File Exists, redirect (302 is the redirect equivalent of 202)
-//     // 303 means use GET to continue, and 307 means reuse the same request method.
-//     res.sendStatus(303).end()
-//     return
-//   }
-//   // //
-//   // Fall through
-//   // //
-//   //
-//   // Not found
-//   // File does not exist
-//   res.sendStatus(404)
-// }
-
 const getVideoInfo = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
   // Get video out of database
-  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let videoItem = videoDatabase.databaseStore[req.params.videoID]
 
   if (!!videoItem) {
     // This is not in the database so that it is hidden from the user
@@ -156,7 +108,7 @@ const getVideoInfo = (req, res) => {
 
 const getVideoList = (req, res) => {
   console.log('sending database JSON')
-  res.json(videoDatabase.databaseStore)
+  res.json(Object.values(videoDatabase.databaseStore))
 }
 
 
@@ -188,7 +140,7 @@ const downloadFromURL = (req, res) => {
     console.log('filename: ' + videoItem.filename + ' already downloaded.');
 
     // Go to parent route / remove 'download' from path
-    let videoRoute = path.join(req.route.path, '..', videoItem.videoID)
+    let videoRoute = path.join(req.route.path, '..', videoItem.id)
     console.log('Redirect client to: ' + videoRoute);
 
     // Note: req.path does not always contain the full matched route
@@ -230,13 +182,11 @@ const downloadFromURL = (req, res) => {
 
     // Add to global download queue for other requests / execution contexts
     videoDownload.videoItem = videoItem
-    videoDownload.videoID = videoItem.videoID
-    videoDownload.filename = info._filename
     downloadQueue.push(videoDownload)
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // save video file
-    video.pipe(fs.createWriteStream(path.join(videoDir, videoDownload.filename), { flags: 'a' }))
+    video.pipe(fs.createWriteStream(path.join(videoDir, videoItem.filename), { flags: 'a' }))
 
 
     // TODO: Return thumbnail and title to client
@@ -285,18 +235,18 @@ const downloadFromURL = (req, res) => {
 
       // WARNING: The cwd option does not work here. Workaround to move the file
       // WARNING: Fix a really shitty problem with unicode/emoji
-      let thumbFilename = path.parse(files[0])
+      let thumbnailFilename = path.parse(files[0])
       let videoFilename = path.parse(videoDownload.videoItem.filename)
-      let emojiCompatibleFilename = `${videoFilename.name}${thumbFilename.ext}`
+      let emojiCompatibleFilename = `${videoFilename.name}${thumbnailFilename.ext}`
 
       try {
         fs.renameSync(emojiCompatibleFilename, path.join(thumbnailDir, emojiCompatibleFilename))
-        videoDownload.videoItem.thumbnailFile = emojiCompatibleFilename
+        videoDownload.videoItem.thumbnailFilename = emojiCompatibleFilename
+        // save after modifying item
+        videoDatabase.saveToDisk()
       } catch (error) {
         console.error(error)
       }
-
-      videoDatabase.saveToDisk()
     })
 
     // TODO: Call gifAPI to begin frame cache
@@ -352,7 +302,7 @@ const deleteVideoFile = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
   // Get filename out of database
-  let videoItem = videoDatabase.findItemsByKey('videoID', req.params.videoID)[0]
+  let videoItem = videoDatabase.databaseStore[req.params.videoID]
 
   if (!!videoItem) {
     // This is not in the database so that it is hidden from the user
@@ -403,27 +353,8 @@ app.use(bodyParser.json())
 // DEBUG: middleware that prints every request
 app.use(function (req, res, next) {
   console.log(`${req.method} ${req.url}`)
-
-  // Express get-header function
-  // console.log('Content-Type: ' + req.get('Content-Type'))
-
-  // Node req obj header property
-  console.log('Content-Type: ' + req.headers['content-type'])
-  console.log('body: ' + JSON.stringify(req.body))
-  next()
-})
-
-// a middleware with no mount path; gets executed for every request to the app
-app.use(function(req, res, next) {
-  // pass videoDatabase
-  res.locals = { videoDatabase: videoDatabase }
-
-  // Decode URL
-  // req.url = decodeURI(req.url)
-
-  res.setHeader('charset', 'utf-8')
-  // Disable all caching (HTTP 1.1)
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+  console.log('Content-Type:',req.headers['content-type'])
+  console.log('body:', req.body)
   next()
 })
 
@@ -432,8 +363,38 @@ app.use(function(req, res, next) {
 // for production, express can staticly serve the build folder files.
 
 // Catch-all middleware for static files in this folder (decodes URL internally)
-app.use(express.static(publicLocation))
+// Note: cacheControl and maxAge options only work if the cache-control header has not been set
+// so, only set no-store in a route AFTER this one, not before.
+// Note: although the spec requires max-age in seconds, the static function only accepts milliseconds.
+app.use(express.static(publicLocation, { cacheControl: true, maxAge: '60000' }))
 
+// a middleware with no mount path; gets executed for every request to the app
+app.use(function(req, res, next) {
+  // pass videoDatabase
+  res.locals = {
+    videoDatabase: videoDatabase,
+    maxAgeSeconds: '60'
+  }
+
+  // Decode URL
+  // req.url = decodeURI(req.url)
+
+  res.setHeader('charset', 'utf-8')
+
+  // Disable all caching (HTTP 1.1) unless later enabled
+  // This prevents the GET list requests from being cached
+  // other APIs use POST to avoid this.
+  // The opposite directive is 'max-age=<seconds>'.
+  // Note: Firefox devs invented 'immutable' because they choose to ignore max-age on (soft) page reloads.
+  // It is nonstandard, and it is intended to be a permanent flag.
+  // The proposed way to update an immutable a resource is to use a new resource identifier.
+  // That's fine when your resources use UUIDs, but not realistic when you are serving index.html and images.
+  // See: https://code.fb.com/web/this-browser-tweak-saved-60-of-requests-to-facebook/
+  // Warning: when Cache-Control exists, the Expires header (absolute date/time) is ignored.
+  res.setHeader("Cache-Control", "no-store")
+
+  next()
+})
 
 ////
 // Route matching (main app logic)
@@ -444,6 +405,7 @@ app.use(express.static(publicLocation))
 app.get('/video/download/progress', getDownloadProgress)
 // app.get('/video/download/:videoID', getVideoFile)
 
+// get all videos as array
 app.get('/video', getVideoList)
 app.get('/video/:videoID', getVideoInfo)
 

@@ -20,3 +20,4 @@ In addition to these programming paradigms:
 - XPC, cross-process communication
 - state synchronization (frontend and backend)
 - lazy-loading (fast UI responsiveness)
+

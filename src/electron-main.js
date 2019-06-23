@@ -6,8 +6,10 @@ const port = process.env.PORT ? process.env.PORT : 3000
 process.env.ELECTRON_START_URL = `http://localhost:${port}`
 
 // Spin up the express backend as a **side effect**
-// TODO: Remove this import, and run node in child process, like react-start below
+// TODO: Remove this import, and run backend in child processes, like in on.error and will-quit below
+// this way I can remove nodeIntegration: true so that Electron can run with less vulnerabilities
 const { videoAPI } = require('./videoAPI.js')
+const React = require('../node_modules/react-scripts/scripts/start.js')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -35,9 +37,6 @@ function createWindow () {
 			? process.env.ELECTRON_START_URL
 			: `file://${path.join(__dirname, '../build/index.html')}`,
 	)
-
-  // and load the index.html of the app.
-  // mainWindow.loadURL(process.env.ELECTRON_START_URL)
 
   // Open the DevTools.
   process.env.NODE_ENV === 'development' && mainWindow.webContents.openDevTools()
@@ -73,28 +72,28 @@ const tryConnection = () => client.connect({port: port}, () => {
 
 client.on('error', (error) => {
   console.log('connection error')
-  if (!childProcess) {
-    // TODO: Replace this with the static build version
-    console.log('running npm run react-start')
+  // if (!childProcess) {
+  //   // TODO: Replace this with the static build version
+  //   console.log('running npm run react-start')
 
-    // Start with color env option because stdio is not a terminal
-    // childProcess = child_process.spawn('npm', ['run', 'react-start'], {
-    childProcess = child_process.spawn('npx', ['react-scripts', 'start'], {
-      cwd: path.join(__dirname, '..'),
-      env: Object.assign(process.env, {FORCE_COLOR: true}),
-    })
+  //   // Start with color env option because stdio is not a terminal
+  //   // childProcess = child_process.spawn('npm', ['run', 'react-start'], {
+  //   childProcess = child_process.spawn('npx', ['react-scripts', 'start'], {
+  //     cwd: path.join(__dirname, '..'),
+  //     env: Object.assign(process.env, {FORCE_COLOR: true}),
+  //   })
 
-    // Remove CLI clear codes
-    childProcess.stdout.on('data', (data) => {
-      let string = String(data)
-      console.log(string.replace(/\\033\[2J/g, ''))
-    })
-  }
-  console.log('trying connection again')
-  setTimeout(tryConnection, 2500)
+  //   // Remove CLI clear codes
+  //   childProcess.stdout.on('data', (data) => {
+  //     let string = String(data)
+  //     console.log(string.replace(/\\033\[2J/g, ''))
+  //   })
+  // }
+  // console.log('trying connection again')
+  // setTimeout(tryConnection, 2500)
 })
 
-app.on('ready', () => {isDev ? tryConnection() : createWindow()})
+app.on('ready', () => {process.env.NODE_ENV === 'development' ? tryConnection() : createWindow()})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -111,10 +110,10 @@ app.on('will-quit', function () {
 
   // Use 'npm stop' because the child process will not stop its children
   // this uses 'pkill -f start.js' under the hood
-  child_process.spawn('npm', ['stop'], {stdio: [process.stdin, process.stdout, process.stderr]})
+  // child_process.spawn('npm', ['stop'], {stdio: [process.stdin, process.stdout, process.stderr]})
 
   // other cleanup--react is a really messy process
-  child_process.spawn('pkill', ['-f', 'open -W http://localhost:3000/'], {stdio: [process.stdin, process.stdout, process.stderr]})
+  // child_process.spawn('pkill', ['-f', 'open -W http://localhost:3000/'], {stdio: [process.stdin, process.stdout, process.stderr]})
 
   // console.log('killing child ' + childProcess.pid)
   // childProcess.kill('SIGKILL', (error) => {

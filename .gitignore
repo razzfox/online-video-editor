@@ -8,7 +8,7 @@ test/gifs
 public/videos
 public/thumbnails
 public/gifs
-public/frameCache
+public/frames
 
 # database storage
 videoDatabase.json

@@ -7,9 +7,9 @@ GET {{host}}/videos
 @thumbnailFilename = {{videoList.response.body.$[0].thumbnailFilename}}
 GET {{host}}/videos/{{videoID}}
 ####
-GET {{host}}/videos/download/progress
+GET {{host}}/videos/downloads/progress
 ####
-POST {{host}}/videos/download
+POST {{host}}/videos/downloads
 Content-Type: application/json
 
 {"url": "https://www.youtube.com/watch?v=MMXAjhAopyg"}

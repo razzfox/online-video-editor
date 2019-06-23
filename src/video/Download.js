@@ -2,12 +2,12 @@ import React, { Component } from 'react';
 import './Download.css';
 
 // videoAPI for reference:
-// app.get('/video', sendVideoList)
-// app.get('/video/:videoID', sendVideoInfo)
-// app.get('/video/download/:videoID', sendVideoFile)
-// app.get('/video/download/progress', downloadProgress)
-// app.post('/video/download', bodyParser.json(), downloadFromURL)
-// app.delete('/video/:videoID', deleteVideoFile)
+// app.get('/videos', sendVideoList)
+// app.get('/videos/:videoID', sendVideoInfo)
+// app.get('/videos/downloads/:videoID', sendVideoFile)
+// app.get('/videos/downloads/progress', downloadProgress)
+// app.post('/videos/downloads', bodyParser.json(), downloadFromURL)
+// app.delete('/videos/:videoID', deleteVideoFile)
 
 
 // Note about mobile apps:
@@ -31,15 +31,18 @@ class Download extends Component {
     // out of order (57, 59, 58, 60), which causes a bouncy progress bar UI.
     //
     // Setting a value that is not from the state is fine, 'setState({ propA: 100 })'
+
+    const backendLocation = 'http://localhost:3080'
+
     this.state = {
       downloadResponse: {},
       downloadProgressList: [],
       availableVideoList: [],
       videoURL: '',
       videoID: '',
-      videoAPILocation: 'http://localhost:3080/video/',
-      downloadRoute: 'download/',
-      progressRoute: 'download/progress',
+      videoAPILocation: new URL('videos/', backendLocation),
+      downloadsRoute: new URL('videos/downloads', backendLocation),
+      progressRoute: new URL('videos/downloads/progress', backendLocation),
     }
 
     // React is opinionated about its one-way binding (omnidirectional data flow)
@@ -59,11 +62,15 @@ class Download extends Component {
   }
 
   componentDidMount() {
-    this.getAvailableVideoList()
-    this.getDownloadProgress()
+    let event = new Event('componentDidMount', {bubbles: false, cancelable: true})
+    this.getAvailableVideoList(event)
+    this.getDownloadProgress(event)
   }
 
-  getAvailableVideoList() {
+  getAvailableVideoList(event) {
+    // prevent page navigation
+    event.preventDefault()
+
     fetch(this.state.videoAPILocation).then(res => res.ok && res.json())
     .then(response => {
       console.log('Success:', response)
@@ -79,8 +86,11 @@ class Download extends Component {
     // Add video html element
   }
 
-  getDownloadProgress() {
-    fetch(this.state.videoAPILocation + this.state.progressRoute).then(res => res.ok && res.json())
+  getDownloadProgress(event) {
+    // prevent page navigation
+    event.preventDefault()
+
+    fetch(this.state.progressRoute).then(res => res.ok && res.json())
     .then(response => {
       console.log('Success:', response)
       this.setState({downloadProgressList: response})
@@ -95,8 +105,11 @@ class Download extends Component {
     this.setState({videoID: event.target.value})
   }
 
-  deleteVideoID() {
-    fetch(this.state.videoAPILocation + this.state.videoID, {
+  deleteVideoID(event) {
+    // prevent page navigation
+    event.preventDefault()
+
+    fetch(new URL(this.state.videoID, this.state.videoAPILocation), {
         method: 'DELETE',
     }).then(res => res.ok && res.json())
     .then(response => {
@@ -138,12 +151,15 @@ class Download extends Component {
   }
 
   postVideoURL(event) {
+    // prevent page navigation
+    event.preventDefault()
+
     console.log('Sending videoURL: ' + this.state.videoURL)
 
     let data = { url: this.state.videoURL }
 
     // Note: the 'no-cors' option *silently* disables sending the body
-    fetch(this.state.videoAPILocation + this.state.downloadRoute, {
+    fetch(this.state.downloadsRoute, {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         headers: {
             'Content-Type': 'application/json'
@@ -158,8 +174,6 @@ class Download extends Component {
       console.error('Error:', error)
       this.setState({downloadResponse: JSON.stringify(error)})
     })
-
-    event.preventDefault()
   }
 
   render() {
@@ -168,7 +182,8 @@ class Download extends Component {
         <h1 className='intro'>
           Download Videos from YouTube or other sites!
         </h1>
-        <form id='downloadURLForm' onSubmit={this.postVideoURL}>
+        <form id='downloadURLForm'
+          onSubmit={this.postVideoURL}>
           <label id='downloadURLLabel'>
             Video URL:
             <textarea id='downloadURL' type='text'
@@ -181,7 +196,8 @@ class Download extends Component {
         <a>Download Response</a>
         <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
 
-        <form id='deleteVideoIDForm' onSubmit={this.deleteVideoID}>
+        <form id='deleteVideoIDForm'
+          onSubmit={this.deleteVideoID}>
           <label id='deleteVideoIDLabel'>
             Delete Video ID:
             <textarea id='deleteVideoID' type='text'

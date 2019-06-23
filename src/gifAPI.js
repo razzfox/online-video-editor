@@ -25,7 +25,7 @@ const publicLocation = path.join(__dirname, '..', 'public')
 const videoDir = path.join(publicLocation, 'videos')
 
 const gifDir = path.join(publicLocation, 'gifs')
-const frameCacheDir = path.join(publicLocation, 'frameCache')
+const frameCacheDir = path.join(publicLocation, 'frames')
 const gifDatabaseFile = path.join(__dirname, '..', 'gifDatabase.json')
 
 // initialize storage
@@ -38,9 +38,9 @@ let videoRequestQueue = []
 const getVideoInfo = (req, res) => {
   console.log('videoID: ' + req.params.videoID)  
 
-  // Get filename out of database
+  // Get video out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.databaseStore[req.params.videoID]
+  let videoItem = videoDatabase.get(req.params.videoID)
   
   // TODO: create a function that checks for the target in database and filesystem
   if(!!videoItem){
@@ -117,9 +117,10 @@ const putVideoToGIF = (req, res) => {
   let gifRequest = req.body
   console.log('videoID: ' + gifRequest.id)
 
-  // Get filename out of database
+  // Get video out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.databaseStore[gifRequest.id]
+  // let videoItem = videoDatabase.get(gifRequest.videoID)
+  let videoItem = videoDatabase.get(gifRequest.id)
 
   if(!videoItem) {
     // Not Found
@@ -196,14 +197,14 @@ const putVideoToGIF = (req, res) => {
 
 const getGIFList = (req, res) => {
   console.log('sending database JSON')
-  res.json(Object.values(gifDatabase.databaseStore))
+  res.json(gifDatabase.all())
 }
 
 const getGIFInfo = (req, res) => {
   console.log('gifID: ' + req.params.gifID)
 
-  // Get filename out of database
-  let gifItem = gifDatabase.databaseStore[req.params.gifID]
+  // Get gif out of database
+  let gifItem = gifDatabase.get(req.params.gifID)
 
   if (!!gifItem) {
     res.status(200).json(gifItem).end()
@@ -222,8 +223,8 @@ const getGIFInfo = (req, res) => {
 const deleteGIF = (req, res) => {
   console.log('gifID: ' + req.params.gifID)
 
-  // Get filename out of database
-  let gifItem = gifDatabase.databaseStore[req.params.gifID]
+  // Get gif out of database
+  let gifItem = gifDatabase.get(req.params.gifID)
 
   if (!!gifItem) {
     // This is not in the database so that it is hidden from the user
@@ -286,10 +287,9 @@ const gifCache = (videoPath) => {
 const postFrameCache = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
-  // console.log(JSON.stringify(res.locals))
-  // Get filename out of database
+  // Get video out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.databaseStore[req.params.videoID]
+  let videoItem = videoDatabase.get(req.params.videoID)
 
   if(!videoItem) {
     // Not Found
@@ -378,9 +378,9 @@ const getVideoFrame = (req, res) => {
 
   let frameStartTime = req.params.frameStartTime
   
-  // Get filename out of database
+  // Get video out of database
   let videoDatabase = res.locals.videoDatabase
-  let videoItem = videoDatabase.databaseStore[req.params.videoID]
+  let videoItem = videoDatabase.get(req.params.videoID)
 
   if(!videoItem) {
     // Not Found

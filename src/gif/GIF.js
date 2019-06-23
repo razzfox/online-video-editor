@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import './GIF.css';
 
 // gifAPI for reference:
-// router.post('/videoInfo', postVideoInfo)
-// router.put('/gif', putVideoToGIF)
-// router.get('/gif', getGIFList)
-// router.get('/gif/:gifID', getGIFInfo)
-// router.delete('/gif/:gifID', deleteGIF)
-// router.post('/frameCache', postFrameCache)
-// router.delete('/frameCache/:videoID', deleteFrameCache)
+// router.post('/videos/id/info', postVideoInfo)
+// router.put('/gifs', putVideoToGIF)
+// router.get('/gifs', getGIFList)
+// router.get('/gifs/:gifID', getGIFInfo)
+// router.delete('/gifs/:gifID', deleteGIF)
+// router.post('/frames', postFrameCache)
+// router.delete('/frames/:videoID', deleteFrameCache)
 // router.post('/gifcache', postGIFCache)
 // router.delete('/gifcache/:videoID', deleteGIFCache)
 
@@ -25,11 +25,11 @@ class GIF extends Component {
     const backendLocation = 'http://localhost:3080'
 
     this.state = {
-      videoAPILocation: new URL('video/', backendLocation),
-      gifAPILocation: new URL('gif/', backendLocation),
+      videoAPILocation: new URL('videos/', backendLocation),
+      gifAPILocation: new URL('gifs/', backendLocation),
       // This is currently different for web and electron clients
       gifFileLocation: new URL('gifs/', backendLocation),
-      frameCacheAPILocation: new URL('frameCache/', backendLocation),
+      frameCacheAPILocation: new URL('frames/', backendLocation),
 
       // Note: React does not support nested state objects.
       // the workaround spread operator only works wih one nested level
@@ -118,7 +118,7 @@ class GIF extends Component {
     }).then(res => res.ok && res)
     .then(response => {
       console.log('Success:', response)
-      this.setState({availableGIFList: this.state.availableGIFList.filter(item => item.gifID !== gifID)})
+      this.setState({availableGIFList: this.state.availableGIFList.filter(item => item.id !== gifID)})
     })
     .catch(error => {
       console.error('Error:', error)

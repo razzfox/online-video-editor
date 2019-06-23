@@ -7,7 +7,7 @@ const versionID = '0.1'
 // Database classes
 class VideoItem {
   constructor(url, title, filename, thumbnailFilename) {
-    this.videoID = uuidgen()
+    this.id = uuidgen()
     this.url = url
     this.title = title
     this.filename = filename
@@ -20,7 +20,7 @@ class VideoItem {
 
 class GIFItem {
   constructor(videoID, title, filename, gifSettings) {
-    this.gifID = uuidgen()
+    this.id = uuidgen()
     this.videoID = videoID
     this.title = title
     this.filename = `${filename}_${this.gifID}.gif`
@@ -57,7 +57,7 @@ class Database {
     this.versionID = versionID
     this.databaseFile = databaseFile
     // could name this: data, store, all, items, allItems, but we want to reduce name collisions, so be more specific
-    this.databaseStore = []
+    this.databaseStore = {}
 
     // TODO: make this a manual action
     // restore database from disk
@@ -86,18 +86,29 @@ class Database {
   }
 
   findItemsByKey(keyName, value) {
-    return this.databaseStore.filter(item => item[keyName] === value)
+    return Object.values(this.databaseStore).filter(item => item[keyName] === value)
+  }
+
+  // Note: this could be sorted in the future
+  all() {
+    return Object.values(this.databaseStore)
+  }
+
+  get(id) {
+    return this.databaseStore[id]
   }
 
   add(addItem) {
-    this.databaseStore.unshift(addItem)
+    // this.databaseStore.unshift(addItem)
+    this.databaseStore[addItem.id] = addItem
 
     // Save database to disk
     this.saveToDisk()
   }
 
   remove(removeItem) {
-    this.databaseStore = this.databaseStore.filter((item) => item !== removeItem)
+    // this.databaseStore = this.databaseStore.filter((item) => item !== removeItem)
+    delete this.databaseStore[removeItem]
 
     // Save database to disk
     this.saveToDisk()

@@ -80,7 +80,7 @@ const getVideoInfo = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
   // Get video out of database
-  let videoItem = videoDatabase.databaseStore[req.params.videoID]
+  let videoItem = videoDatabase.get(req.params.videoID)
 
   if (!!videoItem) {
     // This is not in the database so that it is hidden from the user
@@ -108,7 +108,7 @@ const getVideoInfo = (req, res) => {
 
 const getVideoList = (req, res) => {
   console.log('sending database JSON')
-  res.json(Object.values(videoDatabase.databaseStore))
+  res.json(videoDatabase.all())
 }
 
 
@@ -301,8 +301,8 @@ const getDownloadProgress = (req, res) => {
 const deleteVideoFile = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
-  // Get filename out of database
-  let videoItem = videoDatabase.databaseStore[req.params.videoID]
+  // Get video out of database
+  let videoItem = videoDatabase.get(req.params.videoID)
 
   if (!!videoItem) {
     // This is not in the database so that it is hidden from the user
@@ -371,6 +371,8 @@ app.use(express.static(publicLocation, { cacheControl: true, maxAge: '60000' }))
 // a middleware with no mount path; gets executed for every request to the app
 app.use(function(req, res, next) {
   // pass videoDatabase
+  // pass cache age for immutable resources, so they can be set when sent (everything else is hard no-cache)
+  // TODO: 60 seconds is being used for testing. Change to something much longer.
   res.locals = {
     videoDatabase: videoDatabase,
     maxAgeSeconds: '60'
@@ -402,8 +404,8 @@ app.use(function(req, res, next) {
 
 // Download a file from the server to the client
 // Note: order matching is specific routes (download) before general (:videoID)
-app.get('/videos/download/progress', getDownloadProgress)
-// app.get('/videos/download/:videoID', getVideoFile)
+app.get('/videos/downloads/progress', getDownloadProgress)
+// app.get('/videos/downloads/:videoID', getVideoFile)
 
 // get all videos as array
 app.get('/videos', getVideoList)
@@ -416,7 +418,7 @@ app.get('/videos/:videoID', getVideoInfo)
 // app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 // Note: Only parses body when header Content-Type: application/json
-app.post('/videos/download', downloadFromURL)
+app.post('/videos/downloads', downloadFromURL)
 
 app.delete('/videos/:videoID', deleteVideoFile)
 

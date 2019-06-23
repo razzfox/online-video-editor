@@ -1,15 +1,15 @@
 @host = http://localhost:3080
 
 # @name gifList
-GET {{host}}/gif
+GET {{host}}/gifs
 ####
 # @name videoList
-GET {{host}}/video
+GET {{host}}/videos
 ####
 # @name putGIF
-@videoID = {{videoList.response.body.$[0].videoID}}
+@videoID = {{videoList.response.body.$[0].id}}
 
-PUT {{host}}/gif
+PUT {{host}}/gifs
 Content-Type: application/json
 
 {
@@ -19,20 +19,20 @@ Content-Type: application/json
   "options":{}
 }
 ####
-@gifID = {{gifList.response.body.$[0].gifID}}
+@gifID = {{gifList.response.body.$[0].id}}
 @filename = {{gifList.response.body.$[0].filename}}
-GET {{host}}/gif/{{gifID}}
+GET {{host}}/gifs/{{gifID}}
 ####
-DELETE {{host}}/gif/{{gifID}}
+DELETE {{host}}/gifs/{{gifID}}
 ####
-POST {{host}}/framecache/{{videoID}}
+POST {{host}}/frames/{{videoID}}
 
 ####
-DELETE {{host}}/framecache/{{videoID}}
+DELETE {{host}}/frames/{{videoID}}
 
 ####
 # Public
 GET {{host}}/gifs/{{filename}}
 
 ####
-GET {{host}}/frameCache/{{videoID}}/0
+GET {{host}}/frames/{{videoID}}/0

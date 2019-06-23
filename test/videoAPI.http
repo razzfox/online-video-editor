@@ -1,23 +1,23 @@
 @host = http://localhost:3080
 
 # @name videoList
-GET {{host}}/video
+GET {{host}}/videos
 ####
 @videoID = {{videoList.response.body.$[0].id}}
 @thumbnailFilename = {{videoList.response.body.$[0].thumbnailFilename}}
-GET {{host}}/video/{{videoID}}
+GET {{host}}/videos/{{videoID}}
 ####
-GET {{host}}/video/download/progress
+GET {{host}}/videos/download/progress
 ####
-POST {{host}}/video/download
+POST {{host}}/videos/download
 Content-Type: application/json
 
 {"url": "https://www.youtube.com/watch?v=MMXAjhAopyg"}
 ####
-DELETE {{host}}/video/{{videoID}}
+DELETE {{host}}/videos/{{videoID}}
 
 ####
-GET {{host}}/videoInfo/{{videoID}}
+GET {{host}}/videos/{{videoID}}/info
 
 ####
 # Public

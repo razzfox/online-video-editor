@@ -50,7 +50,7 @@ console.log('__dirname: ' + __dirname)
 
 // gifAPI
 const gifAPILocation = `http://localhost:${port}`
-const gifAPIRoute = '/gif'
+const gifAPIRoute = '/gifs'
 const cacheRoute = 'cache'
 
 
@@ -402,12 +402,12 @@ app.use(function(req, res, next) {
 
 // Download a file from the server to the client
 // Note: order matching is specific routes (download) before general (:videoID)
-app.get('/video/download/progress', getDownloadProgress)
-// app.get('/video/download/:videoID', getVideoFile)
+app.get('/videos/download/progress', getDownloadProgress)
+// app.get('/videos/download/:videoID', getVideoFile)
 
 // get all videos as array
-app.get('/video', getVideoList)
-app.get('/video/:videoID', getVideoInfo)
+app.get('/videos', getVideoList)
+app.get('/videos/:videoID', getVideoInfo)
 
 // These can be set for individual routes
 // Only matches header Content-Type: application/json
@@ -416,9 +416,9 @@ app.get('/video/:videoID', getVideoInfo)
 // app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
 // Note: Only parses body when header Content-Type: application/json
-app.post('/video/download', downloadFromURL)
+app.post('/videos/download', downloadFromURL)
 
-app.delete('/video/:videoID', deleteVideoFile)
+app.delete('/videos/:videoID', deleteVideoFile)
 
 // Catch-all middleware, lexcially placed after all other routes
 // Note: regex is hard and express 4 does it incorrectly

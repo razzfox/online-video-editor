@@ -121,6 +121,12 @@ const putVideoToGIF = (req, res) => {
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.databaseStore[gifRequest.id]
 
+  if(!videoItem) {
+    // Not Found
+    res.sendStatus(404).end()
+    return
+  }
+
   let videoPath = path.join(videoDir, videoItem.filename)
 
   let gifSettings = new database.GIFSettings(gifRequest.start, gifRequest.length, gifRequest.options)
@@ -284,6 +290,13 @@ const postFrameCache = (req, res) => {
   // Get filename out of database
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.databaseStore[req.params.videoID]
+
+  if(!videoItem) {
+    // Not Found
+    res.sendStatus(404).end()
+    return
+  }
+
   let videoPath = path.join(videoDir, videoItem.filename)  
 
   if (fs.existsSync(videoPath)) {
@@ -369,6 +382,12 @@ const getVideoFrame = (req, res) => {
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.databaseStore[req.params.videoID]
 
+  if(!videoItem) {
+    // Not Found
+    res.sendStatus(404).end()
+    return
+  }
+
   // Bad Request
   // TODO: test if length is longer than video
   // if(frameStartTime < 0 || frameStartTime > videoItem.length) {
@@ -383,7 +402,7 @@ const getVideoFrame = (req, res) => {
   let videoPath = path.join(videoDir, videoItem.filename)
   let videoFrameCache = path.join(frameCacheDir, videoItem.id)
 
-  if (!!videoItem && fs.existsSync(videoPath)) {
+  if (fs.existsSync(videoPath)) {
     // if cache folder does not exist, create it
     if (!fs.existsSync(videoFrameCache)) {
       // make storage dir
@@ -499,6 +518,18 @@ const deleteFrameCache = (req, res) => {
   res.sendStatus(404).end()
 }
 
+// TODO: Repair
+const repairGIFList = (req, res) => {
+  // remove gif datbase items without existing files (or recreate the gifs?)
+
+  // enumerate all gif files that do not have a database item
+
+  // recreate the database items for the orphan files
+  // match the filename/title to the video filename
+}
+
+// TODO: make a delete trash. This is important because people will be testing it
+
 
 // a middleware with no mount path; gets executed for every request to the app
 // router.use(function (req, res, next) {
@@ -506,40 +537,40 @@ const deleteFrameCache = (req, res) => {
 // })
 
 // analyze video info (length, fps, size)
-router.get('/videoInfo/:videoID', getVideoInfo)
+router.get('/videos/:videoID/info', getVideoInfo)
 
 // Reminder: Body only parses when header Content-Type: application/json
 // convert video to gif
-router.put('/gif', putVideoToGIF)
+router.put('/gifs', putVideoToGIF)
 
 // get all gifs as array
-router.get('/gif', getGIFList)
+router.get('/gifs', getGIFList)
 
 // download gif file
 // this can be handled by the public directory
-// router.get('/gif/:gifID', getGIFFile)
+// router.get('/gifs/:gifID', getGIFFile)
 
 // get gif info
-router.get('/gif/:gifID', getGIFInfo)
+router.get('/gifs/:gifID', getGIFInfo)
 
 // get all gifs from videoID
 // (data sorting needs to be done on the frontend)
 
 // delete gif
-router.delete('/gif/:gifID', deleteGIF)
+router.delete('/gifs/:gifID', deleteGIF)
 
 // provide frame cache state on post (not get)
 // This is because the action may cause new files to be created
 //
 // include low-q gif cache
 // select video file / edit video again -> return frame cache
-router.post('/frameCache/:videoID', postFrameCache)
+router.post('/frames/:videoID', postFrameCache)
 
 // delete frame cache
-router.delete('/frameCache/:videoID', deleteFrameCache)
+router.delete('/frames/:videoID', deleteFrameCache)
 
 // get frame at time in seconds
-router.get('/frameCache/:videoID/:frameStartTime', getVideoFrame)
+router.get('/frames/:videoID/:frameStartTime', getVideoFrame)
 
 // TODO: animated grid
 // router.post('/gifcache', postGIFCache)

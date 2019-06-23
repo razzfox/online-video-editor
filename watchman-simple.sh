@@ -1,6 +1,6 @@
 # Example usage: bash watchman-simple.sh node src/videoAPI.js
 
-watchman-add() {
+__watchman-add() {
   watchman watch .
   watchman watch-list
 
@@ -25,5 +25,5 @@ watchman-del() {
 }
 
 
-WATCHNAME="$(basename "$PWD") $@"
-watchman-add "$@"
+WATCHNAME="$(basename "$PWD")"
+__watchman-add "$@"

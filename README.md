@@ -31,7 +31,7 @@ And these principals of the REST architecture:
 - Stateless: each request from the client should contain all the information necessary to service the request.
 - Cacheable: immutible resources declare themselves as cachable.
 - Layered System: some resources may exist on a server beyond where the frontend is directly connected, and access to that resource will be transparent, regardless of the layers it went through.
-- Code on Demand: instead of passing static textual representations of resources (i.e. JSON), the client may pass explicit commands that execute on the server. This could be as simple as sending POST with a URL object, instructing the server to download that URL. 
+- Code on Demand: instead of static HTML, the server sends executable code (React JS) that implements client-side features at runtime, opposed to building a single-purpose client for this specific API.
 
 
 REST stands for Representational State Transfer. It's paradigm is essentially to create a state, represent that as text, then transfer it to another server.

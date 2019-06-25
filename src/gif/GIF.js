@@ -98,15 +98,23 @@ class GIF extends Component {
           'Content-Type': 'application/json'
       },
       body: JSON.stringify(body), // body data type must match 'Content-Type' header
-    }).then(res => res.ok && res.json())
+    }).then(res => {
+      if(res.redirected) {
+        let msg = 'GIF already exists:'
+        throw new Error(msg)
+      } else {
+        return res.json()
+      }
+    })
     .then(response => {
-      console.log('Success:', response)
+      // Redirect because resource already exists
+        console.log('Success:', response)
 
-      // this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
-      this.setState({availableGIFList: [...this.state.availableGIFList, response]})
+        // this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
+        this.setState({availableGIFList: [...this.state.availableGIFList, response]})
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error(error)
       // TODO: show an error
     })
   }
@@ -121,7 +129,7 @@ class GIF extends Component {
       this.setState({availableGIFList: this.state.availableGIFList.filter(item => item.id !== gifID)})
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error(error)
       // TODO: show an error
     })
   }

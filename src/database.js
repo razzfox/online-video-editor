@@ -23,7 +23,7 @@ class GIFItem {
     this.id = uuidgen()
     this.videoID = videoID
     this.title = title
-    this.filename = `${filename}_${this.gifID}.gif`
+    this.filename = `${filename}_${this.id}.gif`
 
     // TODO: make this an options object
     this.gifSettings = gifSettings
@@ -77,11 +77,10 @@ class Database {
   }
 
   saveToDisk() {
-    fs.writeFile(this.databaseFile, JSON.stringify(this.databaseStore), (err) => {
-      // if (err) throw err;
-      if (err) console.error(err);
+    fs.writeFile(this.databaseFile, JSON.stringify(this.databaseStore), error => {
+      if (error) console.error(error)
 
-      console.log('Database written to ' + this.databaseFile);
+      console.log('Database written to ' + this.databaseFile)
     })
   }
 
@@ -108,7 +107,7 @@ class Database {
 
   remove(removeItem) {
     // this.databaseStore = this.databaseStore.filter((item) => item !== removeItem)
-    delete this.databaseStore[removeItem]
+    delete this.databaseStore[removeItem.id]
 
     // Save database to disk
     this.saveToDisk()
@@ -132,9 +131,8 @@ const deleteFiles = (...arguments) => {
   for(let file of arguments) {
     console.log('deleting ' + file)
 
-    fs.unlink(file, (err) => {
-      // if (err) throw err;
-      if (err) console.error(err)
+    fs.unlink(file, error => {
+      if (error) console.error(error)
     })
   }
 }

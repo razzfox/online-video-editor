@@ -77,7 +77,7 @@ class Download extends Component {
       this.setState({availableVideoList: response})
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error(error)
       this.setState({availableVideoList: JSON.stringify(error)})
     })
   }
@@ -96,7 +96,7 @@ class Download extends Component {
       this.setState({downloadProgressList: response})
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error(error)
       this.setState({downloadProgressList: JSON.stringify(error)})
     })
   }
@@ -117,7 +117,7 @@ class Download extends Component {
       this.setState({downloadResponse: response})
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error(error)
       this.setState({downloadResponse: JSON.stringify(error)})
     })
   }
@@ -142,7 +142,7 @@ class Download extends Component {
   //     body: formData
   //   })
   //   .then(response => response.json())
-  //   .catch(error => console.error('Error:', error))
+  //   .catch(error => console.error(error))
   //   .then(response => console.log('Success:', JSON.stringify(response)));
   // }
 
@@ -171,7 +171,7 @@ class Download extends Component {
       this.setState({downloadResponse: response})
     })
     .catch(error => {
-      console.error('Error:', error)
+      console.error(error)
       this.setState({downloadResponse: JSON.stringify(error)})
     })
   }
@@ -193,10 +193,11 @@ class Download extends Component {
           <br/>
           <button id='downloadURLButton' type='submit'>Submit URL</button>
         </form>
-        <a>Download Response</a>
-        <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
 
-        <form id='deleteVideoIDForm'
+        {/* <a>Download Response</a>
+        <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre> */}
+
+        {/* <form id='deleteVideoIDForm'
           onSubmit={this.deleteVideoID}>
           <label id='deleteVideoIDLabel'>
             Delete Video ID:
@@ -206,21 +207,21 @@ class Download extends Component {
           </label>
           <br/>
           <button id='deleteVideoIDButton' type='submit'>Submit Video ID</button>
-        </form>
+        </form> */}
 
-        <form>
+        {/* <form>
           <a>Download Progress</a>
           <button id='downloadProgressButton'
             onClick={this.getDownloadProgress}>Get Download Progress</button>
           <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
-        </form>
+        </form> */}
 
-        <form>
+        {/* <form>
           <a>Available Videos</a>
           <button id='availableVideoButton'
             onClick={this.getAvailableVideoList}>Get Available Videos</button>
           <pre id='availableVideoList'>{JSON.stringify(this.state.availableVideoList)}</pre>
-        </form>
+        </form> */}
 
       </div>
     );

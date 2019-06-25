@@ -49,8 +49,8 @@ const getVideoInfo = (req, res) => {
 
     if (fs.existsSync(videoPath)) {
       let process = ffmpeg(videoPath)
-        .ffprobe((err, metadata) => {
-          if (err) console.error(err)
+        .ffprobe((error, metadata) => {
+          if (error) console.error(error)
 
           console.dir(metadata)
           res.status(200).json(metadata).end()
@@ -73,8 +73,8 @@ const mergeGIFs = (gifFilenames) => {
   ffmpeg('/path/to/part1.avi')
     .input('/path/to/part2.avi')
     .input('/path/to/part2.avi')
-    .on('error', (err) => {
-      console.error('An error occurred: ' + err.message);
+    .on('error', error => {
+      console.error(error);
     })
     .on('end', () => {
       console.log('Merging finished !');
@@ -168,10 +168,10 @@ const putVideoToGIF = (req, res) => {
         res.status(201).json(gifItem).end()
         return
       })
-      .on('error', (err, stdout, stderr) => {
-        console.error('Cannot process video: ' + err.message)
+      .on('error', (error, stdout, stderr) => {
+        console.error(error)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(!res.headersSent) res.status(500).json(err.message).end()
+        if(!res.headersSent) res.status(500).json(error).end()
         return
       })
       .renice(5)
@@ -267,11 +267,11 @@ const gifCache = (videoPath) => {
   // .on('progress', (progress) => {
   //   console.log(progress);
   // })
-  .on('error', (err) => {
-    console.error('An error occurred: ' + err.message);
+  .on('error', error => {
+    console.error(error)
   })
   .on('end', () => {
-    console.log('Processing finished !');
+    console.log('Processing finished!')
   })
   .renice(5)
   .run()
@@ -331,10 +331,10 @@ const postFrameCache = (req, res) => {
         console.log('starting GIF cache')
         // gifCache(videoPath)
       })
-      .on('error', (err, stdout, stderr) => {
-        console.error('Cannot process video: ' + err.message)
+      .on('error', (error, stdout, stderr) => {
+        console.error(error)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(!res.headersSent) res.status(500).json(err.message).end()
+        if(!res.headersSent) res.status(500).json(error).end()
         return
       })
       .renice(5)
@@ -456,13 +456,17 @@ const getVideoFrame = (req, res) => {
         // respond with requested frame (support for only one) (
         // this is asynchronous, so do not call res.end()
         res.setHeader('Content-Disposition', `inline; filename="${frameFilename}"`)
+
+        // Note: sendFile's cacheControl and maxAge options only work if the cache-control header has not been set
+        // so it is more reliable to overwrite it without checking
+        res.setHeader("Cache-Control", `public, max-age=${res.locals.maxAgeSeconds}`)
         res.status(201).sendFile(frameFilenamePath)
         return
       })
-      .on('error', (err, stdout, stderr) => {
-        console.error('Cannot process video: ' + err.message)
+      .on('error', (error, stdout, stderr) => {
+        console.error(error)
         // Warning: you should always set a handler for the error event, as node's default behaviour when an error event without any listeners is emitted is to output the error to the console and terminate the program.
-        if(!res.headersSent) res.status(500).json(err.message).end()
+        if(!res.headersSent) res.status(500).json(error).end()
         return
       })
       .renice(-5) // high priority
@@ -500,8 +504,8 @@ const deleteFrameCache = (req, res) => {
 
     try {
       fs.removeSync(videoFrameCache)
-    } catch (err) {
-      console.error(err)
+    } catch (error) {
+      console.error(error)
       res.sendStatus(500).end()
       return
     }

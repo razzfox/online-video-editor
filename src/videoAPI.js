@@ -228,9 +228,8 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Download thumbnail and add info to database
-    youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, (err, files) => {
-      // if (err) throw err;
-      if (err) console.error(err);
+    youtubedl.getThumbs(req.body.url, { all: false, cwd: thumbnailDir }, (error, files) => {
+      if (error) console.error(error)
       console.log('thumbnail file downloaded:', files);
 
       // WARNING: The cwd option does not work here. Workaround to move the file
@@ -253,8 +252,8 @@ const downloadFromURL = (req, res) => {
     // get-state, expect either processing or done, and 404 possible
   })
 
-  video.on('error', (err) => {
-    console.error('youtube-dl error: ', err);
+  video.on('error', error => {
+    console.error('youtube-dl error: ', error);
 
     // TODO: Is this necessary here?
     // remove from downloadQueue
@@ -263,7 +262,7 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Downloader error
-    if(!res.headersSent) res.sendStatus(500).json(err).end()
+    if(!res.headersSent) res.sendStatus(500).json(error).end()
     return
   })
   ////
@@ -273,8 +272,8 @@ const downloadFromURL = (req, res) => {
 }
 
   // Makes a network call for info?
-  // youtubedl.getInfo(req.body.url, [], (err, info) => {
-  //   if (err) return;
+  // youtubedl.getInfo(req.body.url, [], (error, info) => {
+  //   if (error) return;
   //
   //   console.log('id:', info.id);
   //   console.log('title:', info.title);

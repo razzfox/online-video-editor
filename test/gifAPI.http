@@ -2,9 +2,11 @@
 
 # @name gifList
 GET {{host}}/gifs
+
 ####
 # @name videoList
 GET {{host}}/videos
+
 ####
 # @name putGIF
 @videoID = {{videoList.response.body.$[0].id}}
@@ -18,21 +20,43 @@ Content-Type: application/json
   "length":3,
   "options":{}
 }
+
 ####
+# @name getGIFInfo
 @gifID = {{gifList.response.body.$[0].id}}
 @filename = {{gifList.response.body.$[0].filename}}
 GET {{host}}/gifs/{{gifID}}
+
 ####
+# @name deleteGIF
 DELETE {{host}}/gifs/{{gifID}}
+
 ####
+# @name getVideoInfo
+GET {{host}}/videos/{{videoID}}/info
+
+####
+# @name postFrameCache
 POST {{host}}/frames/{{videoID}}
 
 ####
+# @name deleteFrameCache
 DELETE {{host}}/frames/{{videoID}}
 
 ####
-# Public
+# @name getGIFFile
+# Note: should come from public/static server
 GET {{host}}/gifs/{{filename}}
 
 ####
+# @name getFrame
 GET {{host}}/frames/{{videoID}}/0
+
+####
+# @name getFrame2
+GET {{host}}/frames/{{videoID}}/0:1
+
+####
+# @name getFrame3
+GET {{host}}/frames/{{videoID}}/0:2
+

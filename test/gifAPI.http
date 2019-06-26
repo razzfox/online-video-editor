@@ -8,6 +8,10 @@ GET {{host}}/gifs
 GET {{host}}/videos
 
 ####
+# @name getVideoInfo
+GET {{host}}/videos/{{videoID}}/info
+
+####
 # @name putGIF
 @videoID = {{videoList.response.body.$[0].id}}
 
@@ -30,10 +34,6 @@ GET {{host}}/gifs/{{gifID}}
 ####
 # @name deleteGIF
 DELETE {{host}}/gifs/{{gifID}}
-
-####
-# @name getVideoInfo
-GET {{host}}/videos/{{videoID}}/info
 
 ####
 # @name postFrameCache

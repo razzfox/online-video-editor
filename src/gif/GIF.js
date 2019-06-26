@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import './GIF.css';
+import React, { Component } from 'react'
+import './GIF.css'
 
 // gifAPI for reference:
 // router.post('/videos/id/info', postVideoInfo)
@@ -30,6 +30,8 @@ class GIF extends Component {
       // This is currently different for web and electron clients
       gifFileLocation: new URL('gifs/', backendLocation),
       frameCacheAPILocation: new URL('frames/', backendLocation),
+      // TODO: make a template function
+      // videoInfoLocation: new URL(`${this.state.selectedVideoID}/info/`, videoAPILocation),
 
       // Note: React does not support nested state objects.
       // the workaround spread operator only works wih one nested level
@@ -50,6 +52,7 @@ class GIF extends Component {
 
       // the select element can not have null as a value
       selectedVideoID: props.selectedVideoID || '',
+      selectedVideoInfo: {format: {duration: 0}},
     }
 
     this.getStateUpdate = this.getStateUpdate.bind(this)
@@ -60,7 +63,8 @@ class GIF extends Component {
 
   componentDidMount() {
     this.getStateUpdate(this.state.videoAPILocation, 'availableVideoList', () => {
-      if(this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].id})
+    if(this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].id}, this.updateSelectedVideoInfo )
+      // TODO: Update the global state with selectedVideoID
     })
     this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
   }
@@ -146,58 +150,52 @@ class GIF extends Component {
     })
   }
 
+  updateSelectedVideoInfo() {
+    this.state.selectedVideoID && this.getStateUpdate(new URL(`${this.state.selectedVideoID}/info/`, this.state.videoAPILocation), 'selectedVideoInfo')
+  }
+
+  videoPreviewFrameTimestamps() {
+    let duration = this.state.selectedVideoInfo ? this.state.selectedVideoInfo.format.duration : 0
+    if(duration > 12) duration = 12
+
+  // creates an array of {id, filename} objects
+    let previewDegree = 'seconds'
+    switch(previewDegree) {
+      case 'seconds':
+        return Array.from({length: duration}, (value, index) => ({id: index, filename: index}) )
+        // break;
+      case 'frames':
+        return Array.from({length: duration}, (value, index) => ({id: index, filename: `:${index}`}) )
+        // break;
+      case 'deciseconds':
+        return Array.from({length: duration}, (value, index) => ({id: index, filename: index/10}) )
+        // break;
+      default:
+        return []
+    }
+  }
+
   inputStateUpdate(ev, stateVariable, callback) {
+    if(!stateVariable) stateVariable = ev.target.name || ev.target.id
+
     console.log(`Changed ${stateVariable} to ${ev.target.value}`)
 
     this.setState({[stateVariable]: ev.target.value}, callback)
   }
 
-  // {/* TODO: make startFrameSource a caching function (memoize) */}
-  FrameStartIMGList = props => <img id='#startFrameIMG' alt='start frame' src={(this.state.selectedVideoID && `${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`) || '//:0'}></img>
+  FrameStartIMG = props => <img id='frameStartIMG' alt='start frame' src={(this.state.selectedVideoID && `${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`) || '//:0'}></img>
 
-  CreateGIFSettings = props => (
-    <div className='section'>
-      <this.FrameStartIMGList />
-      <label>Start:
-        <input
-          type='number'
-          name='start'
-          value={this.state.start}
-          onChange={(ev) => {
-            if(ev.target.value < 0) return
-            this.inputStateUpdate(ev, 'start')
-          }}
-        />
-      </label>
-      <label>Length:
-        <input
-          type='number'
-          name='length'
-          value={this.state.length}
-          onChange={(ev) => {
-            if(ev.target.value < 0) return
-            this.inputStateUpdate(ev, 'length')
-          }}
-        />
-      </label>
-      <button id='createGIFButton'
-        onClick={(ev) => {
-          this.putGIF()
-          ev.preventDefault()
-        }}>Create GIF</button>
-    </div>
-  )
+  // takes an array of {id, title} objects
+  DropdownList = props => <select {...props}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.title}</option>)}</select>
 
-  // takes an array of items, with {id, name} properties
-  DropDownList = props => <select value={props.value} onChange={props.onChange}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.title}</option>)}</select>
-
+  // takes an array of {id, filename} objects
   ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
 
+  // takes an array of {id, title} objects
   DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.id)}>Delete: {item.title}</a></li>)}</ul>
 
   render() {
     // A purely computed value
-
     const displayedGIFs = this.state.availableGIFList.filter(item => item.videoID === this.state.selectedVideoID)
 
     return (
@@ -208,15 +206,45 @@ class GIF extends Component {
             Convert a video, Dev: {process.env.NODE_ENV}
           </h1>
 
-          <this.DropDownList
+          <this.DropdownList
+            id='selectedVideoID'
             data={this.state.availableVideoList}
             value={this.state.selectedVideoID}
-            onChange={(ev) => this.inputStateUpdate(ev, 'selectedVideoID')}
+            onChange={ev => this.inputStateUpdate(ev, this.id, this.updateSelectedVideoInfo)}
           />
         </div>
 
         {/* TODO: Make a sub component */}
-        <this.CreateGIFSettings />
+        {/* <this.CreateGIFSettings /> */}
+        <div className='section'>
+          <this.ImageGrid id='frameStartList'
+            data={this.videoPreviewFrameTimestamps()}
+            srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}
+          />
+
+          <this.FrameStartIMG />
+          <label>Start:
+            <input
+              type='number'
+              name='start'
+              value={this.state.start}
+              onChange={ev => ev.target.value >= 0 && this.inputStateUpdate(ev, this.name)}
+            />
+          </label>
+          <label>Length:
+            <input
+              type='number'
+              name='length'
+              value={this.state.length}
+              onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev, this.name)}
+            />
+          </label>
+          <button id='createGIFButton'
+            onClick={(ev) => {
+              this.putGIF()
+              ev.preventDefault()
+            }}>Create GIF</button>
+        </div>
 
         <div className='section'>
           <a>Available GIFs</a>

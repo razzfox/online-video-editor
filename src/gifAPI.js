@@ -27,23 +27,31 @@ const videoDir = path.join(publicLocation, 'videos')
 const gifDir = path.join(publicLocation, 'gifs')
 const frameCacheDir = path.join(publicLocation, 'frames')
 const gifDatabaseFile = path.join(__dirname, '..', 'gifDatabase.json')
+const metadataDatabaseFile = path.join(__dirname, '..', 'metadataDatabase.json')
 
 // initialize storage
 database.makeStorageDirs(gifDir, frameCacheDir)
 const gifDatabase = new database.Database('GIFs', gifDatabaseFile)
+const metadataDatabase = new database.Database('Metadata', metadataDatabaseFile)
 
 let videoRequestQueue = []
 
 
 const getVideoInfo = (req, res) => {
-  console.log('videoID: ' + req.params.videoID)  
+  console.log('videoID: ' + req.params.videoID)
+  
+  let videoMetadata = metadataDatabase.get(req.params.videoID)
+  if(videoMetadata){
+    console.dir(videoMetadata)
+    res.status(200).json(videoMetadata).end()
+    return
+  }
 
   // Get video out of database
   let videoDatabase = res.locals.videoDatabase
   let videoItem = videoDatabase.get(req.params.videoID)
-  
-  // TODO: create a function that checks for the target in database and filesystem
-  if(!!videoItem){
+
+  if(videoItem){
     let videoPath = path.join(videoDir, videoItem.filename)
     console.log('videoPath: ' + JSON.stringify(videoPath))
 
@@ -51,6 +59,13 @@ const getVideoInfo = (req, res) => {
       let process = ffmpeg(videoPath)
         .ffprobe((error, metadata) => {
           if (error) console.error(error)
+
+          // videoItem.metadata = metadata
+          // videoDatabase.saveToDisk()
+          metadata.id = videoItem.id
+          metadataDatabase.add(metadata)
+          // metadataDatabase.add({id: videoItem.id, ...metadata})
+          metadataDatabase.saveToDisk()
 
           console.dir(metadata)
           res.status(200).json(metadata).end()
@@ -371,7 +386,7 @@ const cancelIfVideoIDSame = (req, res) => {
 }
 
 const getVideoFrame = (req, res) => {
-  cancelIfVideoIDSame(req, res)
+  // cancelIfVideoIDSame(req, res)
 
   console.log('videoID: ' + req.params.videoID)
   console.log('frameStartTime: ' + req.params.frameStartTime)
@@ -389,9 +404,9 @@ const getVideoFrame = (req, res) => {
   }
 
   // Bad Request
-  // TODO: test if length is longer than video
-  // if(frameStartTime < 0 || frameStartTime > videoItem.length) {
-  if(frameStartTime < 0) {
+  let videoMetadata = metadataDatabase.get(req.params.videoID)  
+  if(frameStartTime < 0 || (videoMetadata && frameStartTime > videoMetadata.format.duration) ) {
+  // if(frameStartTime < 0) {
     let error = 'Frame Start Time is out of video range: ' + frameStartTime
     console.error(error)
     res.status(400).send(error).end()

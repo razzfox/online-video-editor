@@ -13,6 +13,7 @@ public/frames
 # database storage
 videoDatabase.json
 gifDatabase.json
+metadataDatabase.json
 
 # vscode
 .vscode

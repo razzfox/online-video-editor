@@ -73,7 +73,7 @@ class Download extends Component {
 
     fetch(this.state.videoAPILocation).then(res => res.ok && res.json())
     .then(response => {
-      console.log('Success:', response)
+      console.log('AvailableVideoList Success:', response)
       this.setState({availableVideoList: response})
     })
     .catch(error => {
@@ -92,7 +92,7 @@ class Download extends Component {
 
     fetch(this.state.progressRoute).then(res => res.ok && res.json())
     .then(response => {
-      console.log('Success:', response)
+      console.log('DownloadProgress Success:', response)
       this.setState({downloadProgressList: response})
     })
     .catch(error => {
@@ -113,7 +113,7 @@ class Download extends Component {
         method: 'DELETE',
     }).then(res => res.ok && res.json())
     .then(response => {
-      console.log('Success:', response)
+      console.log('deleteVideoID Success:', response)
       this.setState({downloadResponse: response})
     })
     .catch(error => {
@@ -143,7 +143,7 @@ class Download extends Component {
   //   })
   //   .then(response => response.json())
   //   .catch(error => console.error(error))
-  //   .then(response => console.log('Success:', JSON.stringify(response)));
+  //   .then(response => console.log('VideoFileSuccess:', JSON.stringify(response)));
   // }
 
   inputURLChange(event) {
@@ -167,7 +167,7 @@ class Download extends Component {
         body: JSON.stringify(data), // body data type must match 'Content-Type' header
     }).then(res => res.ok && res.json())
     .then(response => {
-      console.log('Success:', response)
+      console.log('VideoURL Success:', response)
       this.setState({downloadResponse: response})
     })
     .catch(error => {

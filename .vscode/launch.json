@@ -1,0 +1,49 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch React",
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--inspect=9229",
+                "${workspaceFolder}/node_modules/react-scripts/scripts/start.js",
+            ],
+            "port": 9229
+        },
+
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}",
+            "runtimeExecutable": "${env:HOME}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            "sourceMaps": true,
+            "trace": true,
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Server",
+            "program": "${workspaceFolder}/src/videoAPI.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Electron",
+            "program": "${workspaceFolder}/src/electron-main.js",
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd"
+            },
+            "args" : ["."],
+            "outputCapture": "std",
+        },
+    ]
+}

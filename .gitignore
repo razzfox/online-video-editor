@@ -15,9 +15,6 @@ videoDatabase.json
 gifDatabase.json
 metadataDatabase.json
 
-# vscode
-.vscode
-
 # dependencies
 node_modules
 

@@ -176,13 +176,13 @@ class GIF extends Component {
     this.setState({[stateVariable || ev.target.name || ev.target.id]: ev.target.value}, callback)
   }
 
-  FrameStartIMG = props => <img id='frameStartIMG' alt='start frame' src={(this.state.selectedVideoID && `${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`) || '//:0'}></img>
+  FrameStartIMG = props => (this.state.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`} />) || null
 
   // takes an array of {id, title} objects
   DropdownList = props => <select {...props}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.title}</option>)}</select>
 
   // takes an array of {id, filename} objects
-  ImageGrid = props => <div><this.FrameStartIMG />{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
+  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
 
   // takes an array of {id, title} objects
   DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.id)}>Delete: {item.title}</a></li>)}</ul>
@@ -206,14 +206,15 @@ class GIF extends Component {
         </div>
 
         {/* TODO: Make a sub component */}
-        {/* <this.CreateGIFSettings /> */}
         <div className='section'>
-          <this.ImageGrid id='frameStartList'
-            data={this.videoPreviewFrameTimestamps()}
-            srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}
-          />
+          <div className='flex-container'>
+            <this.FrameStartIMG />
+            <this.ImageGrid id='frameStartList'
+              data={this.videoPreviewFrameTimestamps()}
+              srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}
+            />
+          </div>
 
-          {/* <this.FrameStartIMG /> */}
           <label>Start:
             <input
               type='number'

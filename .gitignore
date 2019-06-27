@@ -31,3 +31,5 @@ electron-gifs-*
 npm-debug.log
 package-lock.json
 .idea
+todo
+todo.txt

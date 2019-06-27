@@ -1,22 +1,6 @@
 import React, { Component } from 'react'
 import './GIF.css'
 
-// gifAPI for reference:
-// router.post('/videos/id/info', postVideoInfo)
-// router.put('/gifs', putVideoToGIF)
-// router.get('/gifs', getGIFList)
-// router.get('/gifs/:gifID', getGIFInfo)
-// router.delete('/gifs/:gifID', deleteGIF)
-// router.post('/frames', postFrameCache)
-// router.delete('/frames/:videoID', deleteFrameCache)
-// router.post('/gifcache', postGIFCache)
-// router.delete('/gifcache/:videoID', deleteGIFCache)
-
-
-// Note about mobile apps:
-// ffmpeg may not be available
-// implement a remote ffmpeg server
-
 
 class GIF extends Component {
   constructor(props) {

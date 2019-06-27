@@ -1,19 +1,6 @@
 import React, { Component } from 'react';
 import './Download.css';
 
-// videoAPI for reference:
-// app.get('/videos', sendVideoList)
-// app.get('/videos/:videoID', sendVideoInfo)
-// app.get('/videos/downloads/:videoID', sendVideoFile)
-// app.get('/videos/downloads/progress', downloadProgress)
-// app.post('/videos/downloads', bodyParser.json(), downloadFromURL)
-// app.delete('/videos/:videoID', deleteVideoFile)
-
-
-// Note about mobile apps:
-// primarily select video file path (or remote video path)
-// app download will not work
-
 
 class Download extends Component {
   constructor(props) {

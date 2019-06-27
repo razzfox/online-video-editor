@@ -5,16 +5,16 @@
   "devDependencies": {
     "electron": "^1.4.14",
     "electron-packager": "^13.1.1",
-    "react-scripts": "0.8.5"
+    "react-scripts": "0.8.5",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^8.0.1",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2",
-    "react-scripts": "0.8.5",
+    "gm": "^1.23.1",
     "youtube-dl": "^1.13.1"
   },
   "homepage": "./",

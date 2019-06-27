@@ -19,7 +19,7 @@ class Download extends Component {
     //
     // Setting a value that is not from the state is fine, 'setState({ propA: 100 })'
 
-    const backendLocation = 'http://localhost:3080'
+    const backendLocation = `${window.location.protocol}//${window.location.hostname}:3080`
 
     this.state = {
       downloadResponse: {},

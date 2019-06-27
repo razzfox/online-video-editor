@@ -6,7 +6,7 @@ class GIF extends Component {
   constructor(props) {
     super()
 
-    const backendLocation = 'http://localhost:3080'
+    const backendLocation = `${window.location.protocol}//${window.location.hostname}:3080`
 
     this.state = {
       videoAPILocation: new URL('videos/', backendLocation),
@@ -139,10 +139,15 @@ class GIF extends Component {
   }
 
   videoPreviewFrameTimestamps() {
+    if(!this.state.selectedVideoID) return []
+
+    // let start = Number.parseFloat(this.state.start, 10)
+    // use integers to keep preview frames at regular intervals
     let start = Number.parseInt(this.state.start, 10)
 
-    // length is not longer than the duration minus the start time, plus the final frame
-    let length = this.state.selectedVideoInfo ? this.state.selectedVideoInfo.format.duration - start + 1 : 0
+    // length is not longer than the duration minus the start time
+    // add 1 to include the final frame?
+    let length = this.state.selectedVideoInfo.format.duration - start + 1
     
     // max length on screen
     if(length > 8) length = 8
@@ -153,13 +158,14 @@ class GIF extends Component {
     let previewDegree = 'seconds'
     switch(previewDegree) {
       case 'seconds':
-        return Array.from({length}, (value, id) => ({id, filename: id + start}) )
+        // shift by 1 to allow start frame in another component
+        return Array.from({length}, (value, id) => ({id, filename: id + start}) ).slice(1)
         // break;
       case 'frames':
-        return Array.from({length}, (value, id) => ({id, filename: `:${id + start}`}) )
+        return Array.from({length}, (value, id) => ({id, filename: `:${id + start}`}) ).slice(1)
         // break;
       case 'deciseconds':
-        return Array.from({length}, (value, id) => ({id, filename: (id/10) + start}) )
+        return Array.from({length}, (value, id) => ({id, filename: (id/10) + start}) ).slice(1)
         // break;
       default:
         return []
@@ -176,7 +182,7 @@ class GIF extends Component {
   DropdownList = props => <select {...props}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.title}</option>)}</select>
 
   // takes an array of {id, filename} objects
-  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
+  ImageGrid = props => <div><this.FrameStartIMG />{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
 
   // takes an array of {id, title} objects
   DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.id)}>Delete: {item.title}</a></li>)}</ul>
@@ -207,8 +213,6 @@ class GIF extends Component {
             srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}
           />
 
-
-
           {/* <this.FrameStartIMG /> */}
           <label>Start:
             <input
@@ -222,6 +226,7 @@ class GIF extends Component {
               name='start'
               min={0}
               max={this.state.selectedVideoInfo.format.duration}
+              step={0.1}
               value={this.state.start}
               onChange={this.inputStateUpdate}
             />
@@ -232,6 +237,15 @@ class GIF extends Component {
               name='length'
               value={this.state.length}
               onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev, this.name)}
+            />
+            <input
+              type='range'
+              name='length'
+              min={0.5}
+              max={5}
+              step={0.1}
+              value={this.state.length}
+              onChange={this.inputStateUpdate}
             />
           </label>
           <button id='createGIFButton'

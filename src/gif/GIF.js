@@ -139,20 +139,27 @@ class GIF extends Component {
   }
 
   videoPreviewFrameTimestamps() {
-    let duration = this.state.selectedVideoInfo ? this.state.selectedVideoInfo.format.duration : 0
-    if(duration > 12) duration = 12
+    let start = Number.parseInt(this.state.start, 10)
+
+    // length is not longer than the duration minus the start time, plus the final frame
+    let length = this.state.selectedVideoInfo ? this.state.selectedVideoInfo.format.duration - start + 1 : 0
+    
+    // max length on screen
+    if(length > 8) length = 8
+
+    // if(start + length > length) length = length - start
 
   // creates an array of {id, filename} objects
     let previewDegree = 'seconds'
     switch(previewDegree) {
       case 'seconds':
-        return Array.from({length: duration}, (value, index) => ({id: index, filename: index}) )
+        return Array.from({length}, (value, id) => ({id, filename: id + start}) )
         // break;
       case 'frames':
-        return Array.from({length: duration}, (value, index) => ({id: index, filename: `:${index}`}) )
+        return Array.from({length}, (value, id) => ({id, filename: `:${id + start}`}) )
         // break;
       case 'deciseconds':
-        return Array.from({length: duration}, (value, index) => ({id: index, filename: index/10}) )
+        return Array.from({length}, (value, id) => ({id, filename: (id/10) + start}) )
         // break;
       default:
         return []
@@ -160,11 +167,7 @@ class GIF extends Component {
   }
 
   inputStateUpdate(ev, stateVariable, callback) {
-    if(!stateVariable) stateVariable = ev.target.name || ev.target.id
-
-    console.log(`Changed ${stateVariable} to ${ev.target.value}`)
-
-    this.setState({[stateVariable]: ev.target.value}, callback)
+    this.setState({[stateVariable || ev.target.name || ev.target.id]: ev.target.value}, callback)
   }
 
   FrameStartIMG = props => <img id='frameStartIMG' alt='start frame' src={(this.state.selectedVideoID && `${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`) || '//:0'}></img>
@@ -186,9 +189,7 @@ class GIF extends Component {
       <div className='GIF'>
 
         <div className='section'>
-          <h1 className='intro'>
-            Convert a video, Dev: {process.env.NODE_ENV}
-          </h1>
+          <h1 className='intro'>Convert a video</h1>
 
           <this.DropdownList
             id='selectedVideoID'
@@ -206,13 +207,23 @@ class GIF extends Component {
             srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}
           />
 
-          <this.FrameStartIMG />
+
+
+          {/* <this.FrameStartIMG /> */}
           <label>Start:
             <input
               type='number'
               name='start'
               value={this.state.start}
               onChange={ev => ev.target.value >= 0 && this.inputStateUpdate(ev, this.name)}
+            />
+            <input
+              type='range'
+              name='start'
+              min={0}
+              max={this.state.selectedVideoInfo.format.duration}
+              value={this.state.start}
+              onChange={this.inputStateUpdate}
             />
           </label>
           <label>Length:
@@ -232,11 +243,11 @@ class GIF extends Component {
 
         <div className='section'>
           <a>Available GIFs</a>
-          <button id='availableGIFButton'
+          {/* <button id='availableGIFButton'
             onClick={(ev) => {
               this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
               ev.preventDefault()
-            }}>Get Available GIFs</button>
+            }}>Get Available GIFs</button> */}
 
           <this.ImageGrid id='availableGIFList'
             data={displayedGIFs}

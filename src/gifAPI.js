@@ -84,25 +84,10 @@ const getVideoInfo = (req, res) => {
 }
 
 // TODO: Can FFMPEG merge GIFs?
-const mergeGIFs = (gifFilenames) => {
-  ffmpeg('/path/to/part1.avi')
-    .input('/path/to/part2.avi')
-    .input('/path/to/part2.avi')
-    .on('error', error => {
-      console.error(error);
-    })
-    .on('end', () => {
-      console.log('Merging finished !');
-    })
-    // .on('progress', (progress) => {
-    //   console.log(progress);
-    // })
-    .mergeToFile('/path/to/merged.avi', '/path/to/tempDir')
-
-    ////
-    // Responses are generated inside ffmpeg callbacks
-    ////
-    return
+const mergeGIFs = gifFilenames => {
+  // create child process
+  // convert 1.gif 2.gif out.gif
+  return
 }
 
 // Kill ffmpeg after 60 seconds anyway

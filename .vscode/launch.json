@@ -15,7 +15,12 @@
             ],
             "port": 9229
         },
-
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Server",
+            "program": "${workspaceFolder}/src/videoAPI.js"
+        },
         {
             "type": "chrome",
             "request": "launch",
@@ -25,12 +30,6 @@
             "runtimeExecutable": "${env:HOME}/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
             "sourceMaps": true,
             "trace": true,
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Server",
-            "program": "${workspaceFolder}/src/videoAPI.js"
         },
         {
             "type": "node",

@@ -24,7 +24,7 @@ class App extends Component {
       <div className="App">
         <div className="App-header">
           <h1 className="App-logo">⭐</h1>
-          <h2>Razz's GIF Generator</h2>
+          <h2>Razz's GIF Generator ({process.env.NODE_ENV})</h2>
         </div>
         {/* TODO: React-Router */}
         <GIF selectedVideoID={this.state.selectedVideoID} />

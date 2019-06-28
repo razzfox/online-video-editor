@@ -424,9 +424,11 @@ const getVideoFrame = (req, res) => {
       return
     }
 
-    let process = ffmpeg(videoPath)
+    // use var to hoist process to access it in the callback
+    // using let worked on macOS Node, but not on Android/Linux Node
+    var process = ffmpeg(videoPath)
       .on('filenames', (filenames) => {
-        console.time('ffmpeg-screenshots')
+        console.time(frameFilenamePath)
 
         if(filenames[0] !== frameFilename) {
           console.warn(`${filenames[0]} !== ${frameFilename}`)
@@ -447,9 +449,8 @@ const getVideoFrame = (req, res) => {
       //   console.log(progress);
       // })
       .on('end', () => {
-        console.timeEnd('ffmpeg-screenshots')
+        console.timeEnd(frameFilenamePath)
 
-        console.log('Frames finished exporting')
         // remove from progress queue
         videoRequestQueue = videoRequestQueue.filter((item) => item.process !== process)
 

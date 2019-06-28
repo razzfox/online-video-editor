@@ -371,10 +371,10 @@ app.use(express.static(publicLocation, { cacheControl: true, maxAge: '60000' }))
 app.use(function(req, res, next) {
   // pass videoDatabase
   // pass cache age for immutable resources, so they can be set when sent (everything else is hard no-cache)
-  // TODO: 60 seconds is being used for testing. Change to something much longer.
+  // 31536000s = 1yr
   res.locals = {
     videoDatabase: videoDatabase,
-    maxAgeSeconds: '60'
+    maxAgeSeconds: '31536000'
   }
 
   // Decode URL

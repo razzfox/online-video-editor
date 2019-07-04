@@ -304,12 +304,13 @@ const deleteVideoFile = (req, res) => {
   let videoItem = videoDatabase.get(req.params.videoID)
 
   if (!!videoItem) {
-    // This is not in the database so that it is hidden from the user
-    let videoPath = path.join(videoDir, videoItem.filename)
-    let thumbnailPath = path.join(thumbnailDir, videoItem.thumbnailFile)
-
-    // delete file
-    database.deleteFiles(videoPath, thumbnailPath)
+    try {
+      // delete files
+      let videoPath = path.join(videoDir, videoItem.filename)
+      // Note: handrle error due to optional items (thumbnailFile)
+      let thumbnailPath = path.join(thumbnailDir, videoItem.thumbnailFile) || null
+      database.deleteFiles(videoPath, thumbnailPath)
+    } catch (error) {}
 
     // remove from database
     videoDatabase.remove(videoItem)

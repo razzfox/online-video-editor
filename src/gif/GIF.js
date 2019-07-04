@@ -19,7 +19,7 @@ class GIF extends Component {
 
       // Note: React does not support nested state objects.
       // the workaround spread operator only works wih one nested level
-      // asd react will not update views because it uses shallow comparison
+      // and react will not update views because it uses shallow comparison
 
       // seek: number or string format [[hh:]mm:]ss[.xxx]
       start: 0,
@@ -47,18 +47,10 @@ class GIF extends Component {
 
   componentDidMount() {
     this.getStateUpdate(this.state.videoAPILocation, 'availableVideoList', () => {
-    if(this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].id}, this.updateSelectedVideoInfo )
-      // TODO: Update the global state with selectedVideoID
+      // Update the global state with selectedVideoID
+      if(this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].id}, this.updateSelectedVideoInfo )
     })
     this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    // TODO: Does this slow react down?
-    // if(nextState.availableVideoList !== this.state.availableVideoList) {
-    //   console.log('Updated availableVideoList')
-    //   console.log('Consider updating selectedVideoID and any computed values here')
-    // }
   }
 
   putGIF() {
@@ -138,6 +130,21 @@ class GIF extends Component {
     this.state.selectedVideoID && this.getStateUpdate(new URL(`${this.state.selectedVideoID}/info/`, this.state.videoAPILocation), 'selectedVideoInfo')
   }
 
+  // TODO: Scrubbing should be under 100 frames (ideal number? 10? 20?)
+  // TODO: Transfer frames in background to client. dont use a spritemap. for simplicity use the browser's cache.
+  // TODO: find interesting frames by looking for cuts: look for biggest frame differences
+  // TODO: set a default image of correct size (tiny base64) '...' for unloaded frames
+  // TODO: Show variable length gif previews
+  // TODO: Increase GIF quality...
+  // TODO: add text using Jimp
+  // TODO: create gif description info, tooltips, delete title
+
+  // if total length > 10s
+
+  // only load a frame every few seconds
+  
+  // load frames in background
+
   videoPreviewFrameTimestamps() {
     if(!this.state.selectedVideoID) return []
 
@@ -208,7 +215,9 @@ class GIF extends Component {
         {/* TODO: Make a sub component */}
         <div className='section'>
           <div className='flex-container'>
-            <this.FrameStartIMG />
+            <div>{/* div requried for alignment */}
+              <this.FrameStartIMG />
+            </div>
             <this.ImageGrid id='frameStartList'
               data={this.videoPreviewFrameTimestamps()}
               srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}

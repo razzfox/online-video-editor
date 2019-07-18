@@ -130,20 +130,38 @@ class GIF extends Component {
     this.state.selectedVideoID && this.getStateUpdate(new URL(`${this.state.selectedVideoID}/info/`, this.state.videoAPILocation), 'selectedVideoInfo')
   }
 
-  // TODO: Scrubbing should be under 100 frames (ideal number? 10? 20?)
+  // Design / UI
+  ////
+  // TODO: Precache frames on server
   // TODO: Transfer frames in background to client. dont use a spritemap. for simplicity use the browser's cache.
-  // TODO: find interesting frames by looking for cuts: look for biggest frame differences
-  // TODO: set a default image of correct size (tiny base64) '...' for unloaded frames
-  // TODO: Show variable length gif previews
-  // TODO: Increase GIF quality...
+  // ^ Run a loop that requests all frames
+
+  // TODO: set a default image of correct size (tiny base64) '...' (loading symbol) for unloaded frames
+
+  // Full application
+  ////
+  // TODO: Build a larger interface (use a router, smaller titlebar, download management)
+  // TODO: effects panel
+  // TODO: export panel (size and quality)
+  // TODO: merge panel (shows other GIFS)
+
+  // Backend / GIFs
+  ////
+  // TODO: Increase GIF quality... use convert
+
   // TODO: add text using Jimp
-  // TODO: create gif description info, tooltips, delete title
+  // TODO: subtitles to text
 
-  // if total length > 10s
+  // TODO: Merge GIFs
+  // TODO: color filters, zoom, FPS change
 
-  // only load a frame every few seconds
-  
-  // load frames in background
+  // Backburner
+  ////
+  // find interesting frames by looking for cuts: look for biggest frame differences
+  // then show variable length gif previews
+  // TODO: create gif description page: info, delete, title
+
+
 
   videoPreviewFrameTimestamps() {
     if(!this.state.selectedVideoID) return []
@@ -177,6 +195,16 @@ class GIF extends Component {
       default:
         return []
     }
+  }
+
+  videoPreviewFrameSteps() {
+    if(!this.state.selectedVideoID) return 1
+
+    let duration = this.state.selectedVideoInfo.format.duration
+    // [lengthSeconds, frameStep]
+    let steps = [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ]
+    
+    return steps.find(([maxLength, step]) => duration < maxLength )[1]
   }
 
   inputStateUpdate(ev, stateVariable, callback) {
@@ -236,7 +264,7 @@ class GIF extends Component {
               name='start'
               min={0}
               max={this.state.selectedVideoInfo.format.duration}
-              step={0.1}
+              step={this.videoPreviewFrameSteps()}
               value={this.state.start}
               onChange={this.inputStateUpdate}
             />

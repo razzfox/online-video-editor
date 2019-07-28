@@ -58,7 +58,7 @@ const cacheRoute = 'cache'
 // Initialize database and storage directories
 ////
 
-// Note: move up one to parent of 'src' directory; path library manages system delimeters
+// Note: move up one to parent of 'src' directory; path library manages system delimiters
 const publicLocation = path.join(__dirname, '..', 'public')
 
 const videoDir = path.join(publicLocation, 'videos')

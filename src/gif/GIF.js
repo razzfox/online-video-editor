@@ -4,7 +4,7 @@ import './GIF.css'
 
 class GIF extends Component {
   constructor(props) {
-    super()
+    super(props)
 
     const backendLocation = `${window.location.protocol}//${window.location.hostname}:3080`
 
@@ -130,6 +130,27 @@ class GIF extends Component {
     this.state.selectedVideoID && this.getStateUpdate(new URL(`${this.state.selectedVideoID}/info/`, this.state.videoAPILocation), 'selectedVideoInfo')
   }
 
+  // Backend
+  // TODO: GIFs timeline
+  // TODO: default create "GIFV" ... semantics, simply convert to webm or mp4
+  // TODO: Measure MP4 vs WEBM output speeds, including resize and compression ratios.
+  // check out optimize levels=(ultrafast superfast veryfast faster fast medium slow slower veryslow)
+
+  // The point of the backend gifCache is to help the user find the most interesting part of the video
+  // TODO: expect all previews to be video tag. actual GIF will be an output OPTION, with advanced dithering and pallet settings. 
+  // TODO: I could send a 5 second video from the start frame, and have the frontend loop at the selected length
+
+  // TODO: Merge GIFs (merge original file slices)
+  // TODO: Add text to image. Does this require Imagemagick?
+
+  // TODO: Create a backend that handles the ffmpeg calls and the files.
+  // the HTTP API should be a higher level command/response error handler.
+
+
+  // TODO: start page as 'SELECT A VIDEO' or 'ADD NEW VIDEO' using a youtube hot/recent
+  // and a manage videos option to put a delete option on each item (like iOS select)
+
+
   // Design / UI
   ////
   // TODO: Precache frames on server
@@ -140,7 +161,6 @@ class GIF extends Component {
 
   // Full application
   ////
-  // TODO: Build a larger interface (use a router, smaller titlebar, download management)
   // TODO: effects panel
   // TODO: export panel (size and quality)
   // TODO: merge panel (shows other GIFS)
@@ -157,6 +177,7 @@ class GIF extends Component {
 
   // Backburner
   ////
+  // TODO: Build a larger interface (use a router, smaller titlebar, download management) <-- use my website as a desktop motif
   // find interesting frames by looking for cuts: look for biggest frame differences
   // then show variable length gif previews
   // TODO: create gif description page: info, delete, title
@@ -230,7 +251,7 @@ class GIF extends Component {
       <div className='GIF'>
 
         <div className='section'>
-          <h1 className='intro'>Convert a video</h1>
+          <h1 className='intro'>Select clip</h1>
 
           <this.DropdownList
             id='selectedVideoID'
@@ -252,7 +273,7 @@ class GIF extends Component {
             />
           </div>
 
-          <label>Start:
+          <label>Start at (seconds):
             <input
               type='number'
               name='start'

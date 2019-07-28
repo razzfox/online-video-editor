@@ -12,13 +12,14 @@ const isProduction = process.env.NODE_ENV === 'production'
 // react actually checks for 'interactive' TTY when opening the browser window
 const saveTTY = process.stdout.isTTY
 process.stdout.isTTY = false
-const React = isProduction || require('../node_modules/react-scripts/scripts/start.js')
+// const React = isProduction || require('../node_modules/react-scripts/scripts/start.js')
 process.stdout.isTTY = saveTTY
 
 const prodURL =`file://${__dirname}/build/index.html`
 const devURL = process.env.ELECTRON_START_URL || 'http://localhost:3000/'
-const startURL = isProduction ? prodURL : devURL
-
+const startURL =  prodURL
+// const startURL = isProduction ? prodURL : devURL
+console.log('startURL', startURL)
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow

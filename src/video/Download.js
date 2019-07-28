@@ -4,7 +4,7 @@ import './Download.css';
 
 class Download extends Component {
   constructor(props) {
-    super()
+    super(props)
 
     // Note: do not mix setState() with this.state to access state values.
     // Since state changes are asynchronous, the values resolved by this.state
@@ -167,7 +167,7 @@ class Download extends Component {
     return (
       <div className='Download'>
         <h1 className='intro'>
-          Download Videos from YouTube or other sites!
+          Enter link to YouTube or other video
         </h1>
         <form id='downloadURLForm'
           onSubmit={this.postVideoURL}>

@@ -12,7 +12,7 @@ import GIF from './gif/GIF';
 
 class App extends Component {
   constructor(props) {
-    super()
+    super(props)
     this.state = {
       selectedVideoID: new URL(window.location.href).searchParams.get('videoID'),
       downloadURL: new URL(window.location.href).searchParams.get('download'),

@@ -5,21 +5,16 @@ import './GIF.css'
 class GIF extends Component {
   constructor(props) {
     super(props)
-
-    const backendLocation = `${window.location.protocol}//${window.location.hostname}:3080`
-
     this.state = {
-      videoAPILocation: new URL('videos/', backendLocation),
-      gifAPILocation: new URL('gifs/', backendLocation),
-      // This is currently different for web and electron clients
-      gifFileLocation: new URL('gifs/', backendLocation),
-      frameCacheAPILocation: new URL('frames/', backendLocation),
-      // TODO: make a template function
-      // videoInfoLocation: new URL(`${this.state.selectedVideoID}/info/`, videoAPILocation),
+      gifAPILocation: new URL('gifs/', props.backendLocation),
+      // TODO: gifFileLocation is different for web and electron clients
+      gifFileLocation: new URL('gifs/', props.backendLocation),
+      frameCacheAPILocation: new URL('frames/', props.backendLocation),
+
+      availableGIFList: [],
 
       // Note: React does not support nested state objects.
-      // the workaround spread operator only works wih one nested level
-      // and react will not update views because it uses shallow comparison
+      // react will not update views because it uses shallow comparison.
 
       // seek: number or string format [[hh:]mm:]ss[.xxx]
       start: 0,
@@ -30,35 +25,26 @@ class GIF extends Component {
       loop: true,
       fps: 30,
       bounce: false,
-
-      availableVideoList: [],
-      availableGIFList: [],
-
-      // the select element can not have null as a value
-      selectedVideoID: props.selectedVideoID || '',
-      selectedVideoInfo: {format: {duration: 0}},
     }
 
-    this.getStateUpdate = this.getStateUpdate.bind(this)
-
-    this.inputStateUpdate = this.inputStateUpdate.bind(this)
+    this.fetchStateUpdate = props.fetchStateUpdate.bind(this)
+    this.inputStateUpdate = props.inputStateUpdate.bind(this)
+    this.putGIF = this.putGIF.bind(this)
     this.deleteGIF = this.deleteGIF.bind(this)
   }
 
   componentDidMount() {
-    this.getStateUpdate(this.state.videoAPILocation, 'availableVideoList', () => {
-      // Update the global state with selectedVideoID
-      if(this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].id}, this.updateSelectedVideoInfo )
-    })
-    this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
+    if(this.props.selectedVideoID) this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if(this.props.selectedVideoID !== nextProps.selectedVideoID) this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
   }
 
   putGIF() {
-    // create body object from the selected video object
-    let body = this.state.availableVideoList.find(item => item.id === this.state.selectedVideoID)
-
-    // add properites to body object
-    Object.assign(body, {
+    // add properties to body object
+    const body = {
+      id: this.props.selectedVideoID,
       // seek: number or string format [[hh:]mm:]ss[.xxx]
       start: this.state.start,
       // duration: same formats as above
@@ -70,7 +56,7 @@ class GIF extends Component {
         fps: this.state.fps,
         bounce: this.state.bounce,
       },
-    })
+    }
 
     fetch(this.state.gifAPILocation, {
       method: 'PUT',
@@ -90,7 +76,7 @@ class GIF extends Component {
       // Redirect because resource already exists
         console.log('Success:', response)
 
-        // this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
+        // this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
         this.setState({availableGIFList: [...this.state.availableGIFList, response]})
     })
     .catch(error => {
@@ -99,8 +85,8 @@ class GIF extends Component {
     })
   }
 
-  deleteGIF(ev) {
-    let gifID = ev.target.getAttribute('value')
+  deleteGIF(event) {
+    let gifID = event.target.getAttribute('value')
     fetch(new URL(gifID, this.state.gifAPILocation), {
       method: 'DELETE',
     }).then(res => res.ok && res)
@@ -114,78 +100,8 @@ class GIF extends Component {
     })
   }
 
-  getStateUpdate(apiLocation, stateVariable, callback) {
-    fetch(apiLocation).then(res => res.json())
-    .then(res => {
-      console.log(`Response ${stateVariable}: `, res)
-      this.setState({[stateVariable]: res}, callback)
-    })
-    .catch(error => {
-      console.error(`Fetch error ${apiLocation} ${stateVariable}: `, error)
-      this.setState({[stateVariable]: []})
-    })
-  }
-
-  updateSelectedVideoInfo() {
-    this.state.selectedVideoID && this.getStateUpdate(new URL(`${this.state.selectedVideoID}/info/`, this.state.videoAPILocation), 'selectedVideoInfo')
-  }
-
-  // Backend
-  // TODO: GIFs timeline
-  // TODO: default create "GIFV" ... semantics, simply convert to webm or mp4
-  // TODO: Measure MP4 vs WEBM output speeds, including resize and compression ratios.
-  // check out optimize levels=(ultrafast superfast veryfast faster fast medium slow slower veryslow)
-
-  // The point of the backend gifCache is to help the user find the most interesting part of the video
-  // TODO: expect all previews to be video tag. actual GIF will be an output OPTION, with advanced dithering and pallet settings. 
-  // TODO: I could send a 5 second video from the start frame, and have the frontend loop at the selected length
-
-  // TODO: Merge GIFs (merge original file slices)
-  // TODO: Add text to image. Does this require Imagemagick?
-
-  // TODO: Create a backend that handles the ffmpeg calls and the files.
-  // the HTTP API should be a higher level command/response error handler.
-
-
-  // TODO: start page as 'SELECT A VIDEO' or 'ADD NEW VIDEO' using a youtube hot/recent
-  // and a manage videos option to put a delete option on each item (like iOS select)
-
-
-  // Design / UI
-  ////
-  // TODO: Precache frames on server
-  // TODO: Transfer frames in background to client. dont use a spritemap. for simplicity use the browser's cache.
-  // ^ Run a loop that requests all frames
-
-  // TODO: set a default image of correct size (tiny base64) '...' (loading symbol) for unloaded frames
-
-  // Full application
-  ////
-  // TODO: effects panel
-  // TODO: export panel (size and quality)
-  // TODO: merge panel (shows other GIFS)
-
-  // Backend / GIFs
-  ////
-  // TODO: Increase GIF quality... use convert
-
-  // TODO: add text using Jimp
-  // TODO: subtitles to text
-
-  // TODO: Merge GIFs
-  // TODO: color filters, zoom, FPS change
-
-  // Backburner
-  ////
-  // TODO: Build a larger interface (use a router, smaller titlebar, download management) <-- use my website as a desktop motif
-  // find interesting frames by looking for cuts: look for biggest frame differences
-  // then show variable length gif previews
-  // TODO: create gif description page: info, delete, title
-
-
-
   videoPreviewFrameTimestamps() {
-    if(!this.state.selectedVideoID) return []
+    if(!this.props.selectedVideoID) return []
 
     // let start = Number.parseFloat(this.state.start, 10)
     // use integers to keep preview frames at regular intervals
@@ -193,14 +109,14 @@ class GIF extends Component {
 
     // length is not longer than the duration minus the start time
     // add 1 to include the final frame?
-    let length = this.state.selectedVideoInfo.format.duration - start + 1
+    let length = this.props.selectedVideoInfo.format.duration - start + 1
     
     // max length on screen
     if(length > 8) length = 8
 
     // if(start + length > length) length = length - start
 
-  // creates an array of {id, filename} objects
+    // creates an array of {id, filename} objects
     let previewDegree = 'seconds'
     switch(previewDegree) {
       case 'seconds':
@@ -219,23 +135,16 @@ class GIF extends Component {
   }
 
   videoPreviewFrameSteps() {
-    if(!this.state.selectedVideoID) return 1
+    if(!this.props.selectedVideoID) return 1
 
-    let duration = this.state.selectedVideoInfo.format.duration
+    let duration = this.props.selectedVideoInfo.format.duration
     // [lengthSeconds, frameStep]
     let steps = [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ]
     
     return steps.find(([maxLength, step]) => duration < maxLength )[1]
   }
 
-  inputStateUpdate(ev, stateVariable, callback) {
-    this.setState({[stateVariable || ev.target.name || ev.target.id]: ev.target.value}, callback)
-  }
-
-  FrameStartIMG = props => (this.state.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.state.selectedVideoID}/${this.state.start}`} />) || null
-
-  // takes an array of {id, title} objects
-  DropdownList = props => <select {...props}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.title}</option>)}</select>
+  FrameStartIMG = props => (this.props.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.props.selectedVideoID}/${this.state.start}`} />) || null
 
   // takes an array of {id, filename} objects
   ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
@@ -245,23 +154,11 @@ class GIF extends Component {
 
   render() {
     // A purely computed value
-    const displayedGIFs = this.state.availableGIFList.filter(item => item.videoID === this.state.selectedVideoID)
+    const displayedGIFs = this.state.availableGIFList.filter(item => item.videoID === this.props.selectedVideoID)
 
     return (
       <div className='GIF'>
 
-        <div className='section'>
-          <h1 className='intro'>Select clip</h1>
-
-          <this.DropdownList
-            id='selectedVideoID'
-            data={this.state.availableVideoList}
-            value={this.state.selectedVideoID}
-            onChange={ev => this.inputStateUpdate(ev, this.id, this.updateSelectedVideoInfo)}
-          />
-        </div>
-
-        {/* TODO: Make a sub component */}
         <div className='section'>
           <div className='flex-container'>
             <div>{/* div requried for alignment */}
@@ -269,7 +166,7 @@ class GIF extends Component {
             </div>
             <this.ImageGrid id='frameStartList'
               data={this.videoPreviewFrameTimestamps()}
-              srcURLBase={new URL(this.state.selectedVideoID + '/', this.state.frameCacheAPILocation)}
+              srcURLBase={new URL(this.props.selectedVideoID + '/', this.state.frameCacheAPILocation)}
             />
           </div>
 
@@ -284,7 +181,7 @@ class GIF extends Component {
               type='range'
               name='start'
               min={0}
-              max={this.state.selectedVideoInfo.format.duration}
+              max={this.props.selectedVideoInfo.format.duration}
               step={this.videoPreviewFrameSteps()}
               value={this.state.start}
               onChange={this.inputStateUpdate}
@@ -316,11 +213,6 @@ class GIF extends Component {
 
         <div className='section'>
           <a>Available GIFs</a>
-          {/* <button id='availableGIFButton'
-            onClick={(ev) => {
-              this.getStateUpdate(this.state.gifAPILocation, 'availableGIFList')
-              ev.preventDefault()
-            }}>Get Available GIFs</button> */}
 
           <this.ImageGrid id='availableGIFList'
             data={displayedGIFs}

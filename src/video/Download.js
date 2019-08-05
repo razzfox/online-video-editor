@@ -19,17 +19,14 @@ class Download extends Component {
     //
     // Setting a value that is not from the state is fine, 'setState({ propA: 100 })'
 
-    const backendLocation = `${window.location.protocol}//${window.location.hostname}:3080`
-
     this.state = {
       downloadResponse: {},
       downloadProgressList: [],
       availableVideoList: [],
       videoURL: '',
-      videoID: '',
-      videoAPILocation: new URL('videos/', backendLocation),
-      downloadsRoute: new URL('videos/downloads', backendLocation),
-      progressRoute: new URL('videos/downloads/progress', backendLocation),
+
+      downloadsRoute: new URL('videos/downloads', props.backendLocation),
+      progressRoute: new URL('videos/downloads/progress', props.backendLocation),
     }
 
     // React is opinionated about its one-way binding (omnidirectional data flow)
@@ -42,51 +39,25 @@ class Download extends Component {
     // each time it runs (on every render)
     this.inputURLChange = this.inputURLChange.bind(this)
     this.postVideoURL = this.postVideoURL.bind(this)
-    this.getAvailableVideoList = this.getAvailableVideoList.bind(this)
-    this.getDownloadProgress = this.getDownloadProgress.bind(this)
     this.videoIDChange = this.videoIDChange.bind(this)
     this.deleteVideoID = this.deleteVideoID.bind(this)
-  }
-
-  componentDidMount() {
-    let event = new Event('componentDidMount', {bubbles: false, cancelable: true})
-    this.getAvailableVideoList(event)
-    this.getDownloadProgress(event)
-  }
-
-  getAvailableVideoList(event) {
-    // prevent page navigation
-    event.preventDefault()
-
-    fetch(this.state.videoAPILocation).then(res => res.ok && res.json())
-    .then(response => {
-      console.log('AvailableVideoList Success:', response)
-      this.setState({availableVideoList: response})
-    })
-    .catch(error => {
-      console.error(error)
-      this.setState({availableVideoList: JSON.stringify(error)})
-    })
   }
 
   getVideoFile() {
     // Add video html element
   }
 
-  getDownloadProgress(event) {
-    // prevent page navigation
-    event.preventDefault()
-
-    fetch(this.state.progressRoute).then(res => res.ok && res.json())
-    .then(response => {
-      console.log('DownloadProgress Success:', response)
-      this.setState({downloadProgressList: response})
-    })
-    .catch(error => {
-      console.error(error)
-      this.setState({downloadProgressList: JSON.stringify(error)})
-    })
-  }
+  // getDownloadProgress() {
+  //   fetch(this.state.progressRoute).then(res => res.ok && res.json())
+  //   .then(response => {
+  //     console.log('DownloadProgress Success:', response)
+  //     this.setState({downloadProgressList: response})
+  //   })
+  //   .catch(error => {
+  //     console.error(error)
+  //     this.setState({downloadProgressList: JSON.stringify(error)})
+  //   })
+  // }
 
   videoIDChange(event) {
     this.setState({videoID: event.target.value})
@@ -96,7 +67,7 @@ class Download extends Component {
     // prevent page navigation
     event.preventDefault()
 
-    fetch(new URL(this.state.videoID, this.state.videoAPILocation), {
+    fetch(new URL(this.props.selectedVideoID, this.props.videoAPILocation), {
         method: 'DELETE',
     }).then(res => res.ok && res.json())
     .then(response => {
@@ -181,34 +152,20 @@ class Download extends Component {
           <button id='downloadURLButton' type='submit'>Submit URL</button>
         </form>
 
-        {/* <a>Download Response</a>
-        <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre> */}
+        <a>Download Response</a>
+        <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
 
-        {/* <form id='deleteVideoIDForm'
+        <form id='deleteVideoIDForm'
           onSubmit={this.deleteVideoID}>
           <label id='deleteVideoIDLabel'>
             Delete Video ID:
             <textarea id='deleteVideoID' type='text'
-              value={this.state.videoID}
+              value={this.props.selectedVideoID}
               onChange={this.videoIDChange} />
           </label>
           <br/>
           <button id='deleteVideoIDButton' type='submit'>Submit Video ID</button>
-        </form> */}
-
-        {/* <form>
-          <a>Download Progress</a>
-          <button id='downloadProgressButton'
-            onClick={this.getDownloadProgress}>Get Download Progress</button>
-          <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
-        </form> */}
-
-        {/* <form>
-          <a>Available Videos</a>
-          <button id='availableVideoButton'
-            onClick={this.getAvailableVideoList}>Get Available Videos</button>
-          <pre id='availableVideoList'>{JSON.stringify(this.state.availableVideoList)}</pre>
-        </form> */}
+        </form>
 
       </div>
     );

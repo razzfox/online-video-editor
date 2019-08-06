@@ -34,12 +34,16 @@ class GIF extends Component {
   }
 
   componentDidMount() {
-    if(this.props.selectedVideoID) this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
+    // first time selectedVideoID
+    if(this.props.selectedVideoID) this.updateAvailableGIFList()
   }
 
-  componentWillReceiveProps(nextProps) {
-    if(this.props.selectedVideoID !== nextProps.selectedVideoID) this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // react to change to selectedVideoID
+    if(prevProps.selectedVideoID !== this.props.selectedVideoID) this.updateAvailableGIFList()
   }
+
+  updateAvailableGIFList = () => this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
 
   putGIF() {
     // add properties to body object
@@ -75,9 +79,10 @@ class GIF extends Component {
     .then(response => {
       // Redirect because resource already exists
         console.log('Success:', response)
-
-        // this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
-        this.setState({availableGIFList: [...this.state.availableGIFList, response]})
+        // Since state changes are asynchronous, the values resolved by this.state
+        // when this function is called could already be stale values.
+        // Use callback setState( (state, props) => ({ propA: state.propB + 1 }) )    
+        this.setState((state, props) => ({availableGIFList: [...state.availableGIFList, response]}))
     })
     .catch(error => {
       console.error(error)
@@ -92,7 +97,7 @@ class GIF extends Component {
     }).then(res => res.ok && res)
     .then(response => {
       console.log('Success:', response)
-      this.setState({availableGIFList: this.state.availableGIFList.filter(item => item.id !== gifID)})
+      this.setState((state, props) => ({availableGIFList: state.availableGIFList.filter(item => item.id !== gifID)}))
     })
     .catch(error => {
       console.error(error)

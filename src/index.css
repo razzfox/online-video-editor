@@ -3,3 +3,37 @@ body {
   padding: 0;
   font-family: sans-serif;
 }
+
+.header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.intro {
+  font-size: large;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2em;
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: row;
+}
+
+button {
+  width: 15em;
+  height: 2.5em;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+pre {
+  word-wrap: break-word;
+}

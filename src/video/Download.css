@@ -2,40 +2,17 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-}
-
-.header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
-}
-
-.intro {
-  font-size: large;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
   align-items: center;
   margin-top: 2em;
-
   overflow: scroll;
 }
 
-#downloadURLLabel {
+.Download label * {
   display: flex;
-  flex-direction: row;
+  margin: 0.5em;
 }
 
-#downloadURL {
+.Download #downloadURL {
+  width: 25em;
   height: 5em;
-  margin-left: 2em;
-}
-
-button {
-  width: 15em;
-  height: 2.5em;
-  margin-top: 2em;
 }

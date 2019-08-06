@@ -25,6 +25,7 @@ const publicLocation = path.join(__dirname, '..', 'public')
 const videoDir = path.join(publicLocation, 'videos')
 
 const gifDir = path.join(publicLocation, 'gifs')
+const gifCacheDir = path.join(publicLocation, 'gifCache')
 const frameCacheDir = path.join(publicLocation, 'frames')
 const gifDatabaseFile = path.join(__dirname, '..', 'gifDatabase.json')
 const metadataDatabaseFile = path.join(__dirname, '..', 'metadataDatabase.json')
@@ -248,34 +249,59 @@ const deleteGIF = (req, res) => {
   res.sendStatus(404).end()
 }
 
-const gifCache = (videoPath) => {
-  // TODO: does .noAudio() have any impact?
-  ffmpeg(videoPath)
-  .seekInput('1:00')
+const postGIFCache = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)
+  
+  // Get video out of database
+  let videoDatabase = res.locals.videoDatabase
+  let videoItem = videoDatabase.get(req.params.videoID)
 
-  .output('1.gif')
-  .seek('1:00')
-  .duration(1)
+  if(!videoItem) {
+    // Not Found
+    res.sendStatus(404).end()
+    return
+  }
 
-  .output('2.gif')
-  .seek('1:00')
-  .duration(1)
+  // This is not in the database so that it is hidden from the user
+  let videoPath = path.join(videoDir, videoItem.filename)
+  let gifCache = path.join(gifCacheDir, videoItem.id)
 
-  .output('3.gif')
-  .seek('1:00')
-  .duration(1)
+  if (fs.existsSync(videoPath)) {
+    // if cache folder does not exist, create it
+    if (!fs.existsSync(gifCache)) {
+      // make storage dir
+      database.makeStorageDirs(gifCache)
+    }
+  }
 
-  // .on('progress', (progress) => {
-  //   console.log(progress);
-  // })
-  .on('error', error => {
-    console.error(error)
-  })
-  .on('end', () => {
-    console.log('Processing finished!')
-  })
-  .renice(5)
-  .run()
+  let videoMetadata = metadataDatabase.get(req.params.videoID)  
+  if(videoMetadata && videoMetadata.format.duration) {
+    console.time('ffmpeg-screenshots')
+
+    let process = ffmpeg(videoPath)
+    // process.noAudio()
+    for (let index = 0; index < videoMetadata.format.duration; index++) {
+      process.seekInput(index)
+      process.duration(1)
+      process.output(`${gifCache}/${index}.gif`)
+    }
+    // process.on('progress', (progress) => {
+    //   console.log(progress);
+    // })
+    process.on('error', error => {
+      console.error(error)
+    })
+    process.on('end', () => {
+      console.timeEnd('ffmpeg-screenshots')
+      console.log('Processing finished!')
+
+      res.status(201).end()
+      return
+    })
+    process.renice(5)
+    process.run()
+  }
+  
   ////
   // Responses are generated inside ffmpeg callbacks
   ////
@@ -315,7 +341,7 @@ const postFrameCache = (req, res) => {
 
     let process = ffmpeg(videoPath)
       .on('filenames', (filenames) => {
-        console.time('ffmpeg-screenshots' + filenames.join(','))
+        console.time('ffmpeg-screenshots')
 
         res.status(201).json(filenames).end()
         return
@@ -329,7 +355,7 @@ const postFrameCache = (req, res) => {
         console.log('Frames finished exporting')
 
         // GIF cache
-        console.log('starting GIF cache')
+        // console.log('starting GIF cache')
         // gifCache(videoPath)
       })
       .on('error', (error, stdout, stderr) => {
@@ -579,5 +605,5 @@ router.delete('/frames/:videoID', deleteFrameCache)
 router.get('/frames/:videoID/:frameStartTime', getVideoFrame)
 
 // TODO: animated grid
-// router.post('/gifcache', postGIFCache)
+router.post('/gifcache/:videoID', postGIFCache)
 // router.delete('/gifcache/:videoID', deleteGIFCache)

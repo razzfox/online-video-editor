@@ -44,6 +44,14 @@ POST {{host}}/frames/{{videoID}}
 DELETE {{host}}/frames/{{videoID}}
 
 ####
+# @name postGIFCache
+POST {{host}}/gifcache/{{videoID}}
+
+####
+# @name deleteGIFCache
+DELETE {{host}}/gifcache/{{videoID}}
+
+####
 # @name getGIFFile
 # Note: should come from public/static server
 GET {{host}}/gifs/{{filename}}

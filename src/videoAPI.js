@@ -262,7 +262,7 @@ const downloadFromURL = (req, res) => {
     console.log('downloadQueue: ' + JSON.stringify(downloadQueue))
 
     // Downloader error
-    if(!res.headersSent) res.sendStatus(500).json(error).end()
+    if(!res.headersSent) res.status(500).send(error).end()
     return
   })
   ////
@@ -429,7 +429,7 @@ app.delete('/videos/:videoID', deleteVideoFile)
 //   res.redirect('/')
 // })
 // app.use(function(req, res){
-//   res.sendStatus(404)
+//   res.sendStatus(404).end()
 // })
 
 ////

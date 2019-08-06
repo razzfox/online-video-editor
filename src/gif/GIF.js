@@ -21,7 +21,7 @@ class GIF extends Component {
       // duration: same formats as above
       length: 1,
       // may be #x# or #x?
-      width: '100',
+      width: '200',
       loop: true,
       fps: 30,
       bounce: false,
@@ -219,7 +219,7 @@ class GIF extends Component {
             <input
               type='range'
               name='width'
-              min={10}
+              min={50}
               max={500}
               step={50}
               value={this.state.width}

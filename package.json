@@ -3,19 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "electron": "^1.4.14",
-    "electron-packager": "^13.1.1",
-    "react-scripts": "0.8.5",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "electron": "^6.0.0",
+    "electron-packager": "^14.0.4",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "^3.0.1"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "fluent-ffmpeg": "^2.1.2",
-    "fs-extra": "^8.0.1",
+    "fs-extra": "^8.1.0",
     "gm": "^1.23.1",
-    "youtube-dl": "^1.13.1"
+    "youtube-dl": "^2.0.0"
   },
   "homepage": "./",
   "main": "src/electron-main.js",
@@ -29,5 +29,17 @@
     "test": "react-scripts test --env=jsdom",
     "react-start": "react-scripts start; npm run react-stop",
     "react-stop": "pkill -f 'start.js'"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

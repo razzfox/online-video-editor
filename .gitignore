@@ -5,10 +5,11 @@ test/videos
 test/gifs
 
 # media storage
-public/videos
-public/thumbnails
-public/gifs
 public/frames
+public/gifCache
+public/gifs
+public/thumbnails
+public/videos
 
 # database storage
 videoDatabase.json

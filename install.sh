@@ -1,8 +1,8 @@
 # MacOS
-brew install ffmpeg
+brew install nodejs ffmpeg imagemagick python
 
 # Android 
-pkg install nodejs ffmpeg imagemagick
+pkg install nodejs ffmpeg imagemagick python
 
 
 # Node modules require that youtube_dl and ffmpeg are already installed

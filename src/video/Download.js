@@ -40,13 +40,14 @@ class Download extends Component {
     })
   }
 
-  deleteVideoID(event) {
+  deleteVideoID() {
     fetch(new URL(this.props.selectedVideoID, this.props.videoAPILocation), {
         method: 'DELETE',
     }).then(res => res.ok)
     .then(response => {
       console.log('deleteVideoID Success:', response)
-      this.setState({downloadResponse: response})
+      const deletedTitle = this.props.availableVideoList.find(video => video.id === this.props.selectedVideoID)
+      this.setState({downloadResponse: `Deleted ${deletedTitle}`})
       this.props.updateAvailableVideoList()
     })
     .catch(error => {
@@ -79,7 +80,7 @@ class Download extends Component {
   //   .then(response => console.log('VideoFileSuccess:', JSON.stringify(response)));
   // }
 
-  postDownloadURL(event) {
+  postDownloadURL() {
     // Using HTML forms has the unnecessary side effect of reloading the page with the response,
     // so if this is an onSubmit event, we have to prevent page navigation
     // event.preventDefault()
@@ -109,35 +110,32 @@ class Download extends Component {
   }
 
   render() {
-    return (
-      <div className='Download'>
-        <h1 className='intro'>
-          Enter link to YouTube or other video
-        </h1>
+    return <div className='Download'>
+      <h1 className='intro'>
+        Enter link to YouTube or other video
+      </h1>
 
-        <label id='downloadURLLabel'>
-          Video URL:
-          <textarea id='downloadURL'
-            type='text'
-            value={this.state.downloadURL}
-            onChange={this.inputStateUpdate} />
-        </label>
-        <button id='downloadURLButton'
-          onClick={this.postDownloadURL}>
-          Download Video URL
-        </button>
+      <label id='downloadURLLabel'>
+        Video URL:
+        <textarea id='downloadURL'
+          type='text'
+          value={this.state.downloadURL}
+          onChange={this.inputStateUpdate} />
+      </label>
+      <button id='downloadURLButton'
+        onClick={this.postDownloadURL}>
+        Download Video URL
+      </button>
 
-        <a>Active Downloads</a>
-        <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
-        <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
-        
-        <button id='deleteVideoIDButton'
-          onClick={this.deleteVideoID}>
-          Delete Selected Video
-        </button>
-
-      </div>
-    );
+      <a>Active Downloads</a>
+      <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
+      <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
+    
+      <button id='deleteVideoIDButton'
+        onClick={this.deleteVideoID}>
+        Delete Selected Video
+      </button>
+    </div>
   }
 }
 

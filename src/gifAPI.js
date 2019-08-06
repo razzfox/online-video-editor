@@ -148,6 +148,7 @@ const putVideoToGIF = (req, res) => {
       .output(gifPath)
       .seekInput(gifSettings.start)
       .duration(gifSettings.length)
+      .size(gifSettings.width)
 
       .on('start', () => {
         console.time('ffmpeg-' + gifItem.filename)
@@ -215,7 +216,7 @@ const getGIFInfo = (req, res) => {
   ////
 
   // Not found
-  res.sendStatus(404)
+  res.sendStatus(404).end()
 }
 
 // TODO: How to delete gifCache and frameCache on deletion?

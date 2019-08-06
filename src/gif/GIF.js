@@ -21,7 +21,7 @@ class GIF extends Component {
       // duration: same formats as above
       length: 1,
       // may be #x# or #x?
-      width: '100x',
+      width: '100',
       loop: true,
       fps: 30,
       bounce: false,
@@ -54,8 +54,8 @@ class GIF extends Component {
       // duration: same formats as above
       length: this.state.length,
       options: {
-        // may be #x# or #x?
-        width: this.state.width,
+        // may be '#x#' or '#x?'
+        width: `${this.state.width}x?`,
         loop: this.state.loop,
         fps: this.state.fps,
         bounce: this.state.bounce,
@@ -180,7 +180,7 @@ class GIF extends Component {
               type='number'
               name='start'
               value={this.state.start}
-              onChange={ev => ev.target.value >= 0 && this.inputStateUpdate(ev, this.name)}
+              onChange={ev => ev.target.value >= 0 && this.inputStateUpdate(ev)}
             />
             <input
               type='range'
@@ -197,7 +197,7 @@ class GIF extends Component {
               type='number'
               name='length'
               value={this.state.length}
-              onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev, this.name)}
+              onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev)}
             />
             <input
               type='range'
@@ -206,6 +206,23 @@ class GIF extends Component {
               max={5}
               step={0.1}
               value={this.state.length}
+              onChange={this.inputStateUpdate}
+            />
+          </label>
+          <label>Size:
+            <input
+              type='number'
+              name='width'
+              value={this.state.width}
+              onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev)}
+            />
+            <input
+              type='range'
+              name='width'
+              min={10}
+              max={500}
+              step={50}
+              value={this.state.width}
               onChange={this.inputStateUpdate}
             />
           </label>

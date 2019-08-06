@@ -1,12 +1,13 @@
+# Node modules require that youtube_dl and ffmpeg are already installed
+
 # MacOS
 brew install nodejs ffmpeg imagemagick python
 
 # Android 
 pkg install nodejs ffmpeg imagemagick python
 
-
-# Node modules require that youtube_dl and ffmpeg are already installed
-pip install --upgrade youtube_dl
+# youtube-dl must be upgraded on a regular basis in order to continue working (daily/weekly)
+pip install --upgrade youtube_dl || pip3 install --upgrade youtube_dl
 
 # Project
 npm install

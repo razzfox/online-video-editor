@@ -43,7 +43,7 @@ class Download extends Component {
   deleteVideoID(event) {
     fetch(new URL(this.props.selectedVideoID, this.props.videoAPILocation), {
         method: 'DELETE',
-    }).then(res => res.ok && res.json())
+    }).then(res => res.ok)
     .then(response => {
       console.log('deleteVideoID Success:', response)
       this.setState({downloadResponse: response})

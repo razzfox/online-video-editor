@@ -57,10 +57,20 @@ class App extends Component {
   }
 
   // to be passed to child to update parent state
-  updateAvailableVideoList = () => this.fetchStateUpdate(this.state.videoAPILocation, 'availableVideoList', () => {
-    if((! this.state.selectedVideoID || ! this.state.availableVideoList.some(video => video.id === this.state.selectedVideoID) )
-      && this.state.availableVideoList.length > 0) this.setState( (state, props) => ({selectedVideoID: state.availableVideoList[0].id}) )
-  })
+  updateAvailableVideoList = nextSelectedVideoID => this.fetchStateUpdate(this.state.videoAPILocation, 'availableVideoList', () =>
+    this.setState((state, props) => {
+      if(state.availableVideoList.length === 0)
+        return { selectedVideoID: '' }
+
+      // choose nextSelectedVideoID
+      if(nextSelectedVideoID && state.availableVideoList.some(video => video.id === nextSelectedVideoID))
+        return { selectedVideoID: nextSelectedVideoID }
+
+      // choose first item from availableVideoList
+      if(! state.selectedVideoID || ! state.availableVideoList.some(video => video.id === state.selectedVideoID) )
+        return { selectedVideoID: state.availableVideoList[0].id }
+    })
+  )
 
   // this helper function makes an api call and updates state in a standardized way (based on var name)
   fetchStateUpdate(apiLocation, stateVariable, callback) {
@@ -102,7 +112,9 @@ class App extends Component {
         {/* TODO: React-Router */}
         <this.SelectVideo />
         <GIF {...this.state} />
-        <Download {...this.state} updateAvailableVideoList={this.updateAvailableVideoList} />
+        <Download {...this.state}
+          updateAvailableVideoList={this.updateAvailableVideoList}
+        />
       </div>
     );
   }

@@ -9,6 +9,7 @@ class Download extends Component {
       downloadResponse: {},
       downloadProgressList: [],
       downloadURL: '',
+      nextSelectedVideoItem: {},
 
       downloadsRoute: new URL('videos/downloads', props.backendLocation),
       progressRoute: new URL('videos/downloads/progress', props.backendLocation),
@@ -29,9 +30,17 @@ class Download extends Component {
       console.log('downloadProgressList Success:', response)
       // update continuously until download is finished
       this.setState({downloadProgressList: response}, () => {
-        // TODO: convert this to componentDidUpdate(prevProps, prevState, snapshot)
+        // TODO: move this logic to componentDidUpdate(prevProps, prevState, snapshot)
         if(this.state.downloadProgressList.length > 0) this.getDownloadProgressList()
-        else this.props.updateAvailableVideoList()
+        else {
+          // update selected video on finished download
+          this.props.updateAvailableVideoList(this.state.nextSelectedVideoItem && this.state.nextSelectedVideoItem.id)
+          this.setState({
+            downloadResponse: {},
+            nextSelectedVideoItem: {},
+          })
+
+        }
       })
     })
     .catch(error => {
@@ -46,8 +55,8 @@ class Download extends Component {
     }).then(res => res.ok)
     .then(response => {
       console.log('deleteVideoID Success:', response)
-      const deletedTitle = this.props.availableVideoList.find(video => video.id === this.props.selectedVideoID)
-      this.setState({downloadResponse: `Deleted ${deletedTitle}`})
+      const deletedItem = this.props.availableVideoList.find(video => video.id === this.props.selectedVideoID)
+      this.setState({downloadResponse: `Deleted ${deletedItem.title}`})
       this.props.updateAvailableVideoList()
     })
     .catch(error => {
@@ -87,19 +96,20 @@ class Download extends Component {
 
     console.log('Sending downloadURL: ' + this.state.downloadURL)
 
-    let data = { url: this.state.downloadURL }
+    let body = { url: this.state.downloadURL }
 
     // Note: the 'no-cors' option *silently* disables sending the body
     fetch(this.state.downloadsRoute, {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
         headers: {
-            'Content-Type': 'application/json'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data), // body data type must match 'Content-Type' header
+        body: JSON.stringify(body), // body data type must match 'Content-Type' header
     }).then(res => res.ok && res.json())
     .then(response => {
       console.log('downloadURL Success:', response)
       this.setState({downloadResponse: response})
+      this.setState({nextSelectedVideoItem: response})
       // start monitoring download progress
       this.getDownloadProgressList()
     })

@@ -196,7 +196,7 @@ const downloadFromURL = (req, res) => {
     console.log('filename: ' + info._filename)
 
     // URL accepted, processing
-    res.status(202).json(downloadQueue).end()
+    res.status(202).json(videoItem).end()
     return
   });
 

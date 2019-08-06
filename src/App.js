@@ -58,7 +58,8 @@ class App extends Component {
 
   // to be passed to child to update parent state
   updateAvailableVideoList = () => this.fetchStateUpdate(this.state.videoAPILocation, 'availableVideoList', () => {
-    if(! this.state.selectedVideoID && this.state.availableVideoList.length > 0) this.setState({selectedVideoID: this.state.availableVideoList[0].id})
+    if((! this.state.selectedVideoID || ! this.state.availableVideoList.some(video => video.id === this.state.selectedVideoID) )
+      && this.state.availableVideoList.length > 0) this.setState( (state, props) => ({selectedVideoID: state.availableVideoList[0].id}) )
   })
 
   // this helper function makes an api call and updates state in a standardized way (based on var name)

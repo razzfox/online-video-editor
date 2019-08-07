@@ -9,44 +9,36 @@ class Download extends Component {
       downloadResponse: {},
       downloadProgressList: [],
       downloadURL: '',
-      nextSelectedVideoItem: {},
 
       downloadsRoute: new URL('videos/downloads', props.backendLocation),
       progressRoute: new URL('videos/downloads/progress', props.backendLocation),
     }
 
-    this.inputStateUpdate = this.props.inputStateUpdate.bind(this)
+    // bind functions that will be called inside the render context
     this.postDownloadURL = this.postDownloadURL.bind(this)
     this.deleteVideoID = this.deleteVideoID.bind(this)
+    this.continueDownloadProgressList = this.continueDownloadProgressList.bind(this)
+    // reassign context for borrowed functions
+    this.fetchStateUpdate = props.fetchStateUpdate.bind(this)
+    this.inputStateUpdate = props.inputStateUpdate.bind(this)
   }
 
   getVideoFile() {
     // Add video html element
   }
 
-  getDownloadProgressList() {
-    fetch(this.state.progressRoute).then(res => res.ok && res.json())
-    .then(response => {
-      console.log('downloadProgressList Success:', response)
-      // update continuously until download is finished
-      this.setState({downloadProgressList: response}, () => {
-        // TODO: move this logic to componentDidUpdate(prevProps, prevState, snapshot)
-        if(this.state.downloadProgressList.length > 0) this.getDownloadProgressList()
-        else {
-          // update selected video on finished download
-          this.props.updateAvailableVideoList(this.state.nextSelectedVideoItem && this.state.nextSelectedVideoItem.id)
-          this.setState({
-            downloadResponse: {},
-            nextSelectedVideoItem: {},
-          })
-
-        }
+  continueDownloadProgressList() {
+    // if downloads are in progress, update list and call this function again
+    if(this.state.downloadProgressList.length > 0) this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
+    else {
+      // after all downloads finish, do not call this function again
+      // update parent's videoList and selectedVideoID
+      this.props.updateAvailableVideoList(this.state.downloadResponse && this.state.downloadResponse.id)
+      // reset download state
+      this.setState({
+        downloadResponse: {},
       })
-    })
-    .catch(error => {
-      console.error('downloadProgressList Error:', error)
-      this.setState({downloadProgressList: JSON.stringify(error)})
-    })
+    }
   }
 
   deleteVideoID() {
@@ -93,10 +85,9 @@ class Download extends Component {
     // Using HTML forms has the unnecessary side effect of reloading the page with the response,
     // so if this is an onSubmit event, we have to prevent page navigation
     // event.preventDefault()
+    console.log('POST downloadURL', this.state.downloadURL)
 
-    console.log('Sending downloadURL: ' + this.state.downloadURL)
-
-    let body = { url: this.state.downloadURL }
+    const url = this.state.downloadURL
 
     // Note: the 'no-cors' option *silently* disables sending the body
     fetch(this.state.downloadsRoute, {
@@ -104,17 +95,16 @@ class Download extends Component {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(body), // body data type must match 'Content-Type' header
+        body: JSON.stringify({url}), // body data type must match 'Content-Type' header
     }).then(res => res.ok && res.json())
     .then(response => {
-      console.log('downloadURL Success:', response)
+      console.log('downloadURL Success', response)
       this.setState({downloadResponse: response})
-      this.setState({nextSelectedVideoItem: response})
       // start monitoring download progress
-      this.getDownloadProgressList()
+      this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
     })
     .catch(error => {
-      console.error('downloadURL Error:', error)
+      console.error('downloadURL Error', error)
       this.setState({downloadResponse: JSON.stringify(error)})
     })
   }

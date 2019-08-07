@@ -76,11 +76,11 @@ class App extends Component {
   fetchStateUpdate(apiLocation, stateVariable, callback) {
     fetch(apiLocation).then(res => res.json())
     .then(res => {
-      console.log(`Response ${stateVariable}: `, res)
+      console.log(`Fetched ${stateVariable}`, res)
       this.setState({[stateVariable]: res}, callback)
     })
     .catch(error => {
-      console.error(`Fetch error ${apiLocation} ${stateVariable}: `, error)
+      console.error(`Fetch error ${apiLocation} ${stateVariable}`, error)
     })
   }
 

@@ -28,11 +28,12 @@ class GIF extends Component {
     }
 
     // bind functions that will be called inside the render context
-    this.fetchStateUpdate = props.fetchStateUpdate.bind(this)
-    this.inputStateUpdate = props.inputStateUpdate.bind(this)
     this.putGIF = this.putGIF.bind(this)
     this.deleteGIF = this.deleteGIF.bind(this)
     this.replaceGIFSettings = this.replaceGIFSettings.bind(this)
+    // reassign context for borrowed functions
+    this.fetchStateUpdate = props.fetchStateUpdate.bind(this)
+    this.inputStateUpdate = props.inputStateUpdate.bind(this)
   }
 
   componentDidMount() {
@@ -83,7 +84,7 @@ class GIF extends Component {
     })
     .then(response => {
       // Redirect because resource already exists
-        console.log('Success:', response)
+        console.log('Created GIF', response)
         // Since state changes are asynchronous, the values resolved by this.state
         // when this function is called could already be stale values.
         // Use callback setState( (state, props) => ({ propA: state.propB + 1 }) )    
@@ -101,7 +102,7 @@ class GIF extends Component {
       method: 'DELETE',
     }).then(res => res.ok && res)
     .then(response => {
-      console.log('Success:', response)
+      console.log('Deleted GIF', response)
       this.setState((state, props) => ({availableGIFList: state.availableGIFList.filter(item => item.id !== gifID)}) )
     })
     .catch(error => {

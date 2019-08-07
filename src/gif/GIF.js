@@ -47,7 +47,7 @@ class GIF extends Component {
     if(prevState.availableGIFList !== this.state.availableGIFList) this.updateDisplayedGIFList()
   }
 
-  // Note: doriving one state value from another requires using a (state, props) => function
+  // Note: deriving one state value from another requires using a (state, props) => function
   updateDisplayedGIFList = () => this.setState((state, props) => ({ displayedGIFList: state.availableGIFList.filter(item => item.videoID === props.selectedVideoID) }) )
 
   updateAvailableGIFList = () => this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
@@ -111,7 +111,7 @@ class GIF extends Component {
   }
 
   replaceGIFSettings(event) {
-    const gifID = event.target.getAttribute('data-gifid')
+    const gifID = event.target.getAttribute('data-gif-id')
     const gifItem = this.state.displayedGIFList.find(item => item.id === gifID)
     this.setState({ ...gifItem.gifSettings })
   }
@@ -163,7 +163,7 @@ class GIF extends Component {
   FrameStartIMG = props => (this.props.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.props.selectedVideoID}/${this.state.start}`} />) || null
 
   // takes an array of {id, filename} objects, custom attributes must be lowercase
-  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} onClick={props.onClick} data-gifid={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>
+  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} onClick={props.onClick} data-gif-id={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>
 
   // takes an array of {id, title} objects
   DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><button onClick={props.onClick} value={(item.id)}>Delete: {item.title}</button></li>)}</ul>
@@ -174,7 +174,7 @@ class GIF extends Component {
 
         <div className='section'>
           <div className='flex-container'>
-            <div>{/* div requried for alignment */}
+            <div>{/* div required for alignment */}
               <this.FrameStartIMG />
             </div>
             <this.ImageGrid id='frameStartList'

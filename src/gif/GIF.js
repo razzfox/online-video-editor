@@ -12,6 +12,7 @@ class GIF extends Component {
       frameCacheAPILocation: new URL('frames/', props.backendLocation),
 
       availableGIFList: [],
+      displayedGIFList: [],
 
       // Note: React does not support nested state objects.
       // react will not update views because it uses shallow comparison.
@@ -40,8 +41,13 @@ class GIF extends Component {
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // react to change to selectedVideoID
+    // these are independent because a new video could have new gifs
     if(prevProps.selectedVideoID !== this.props.selectedVideoID) this.updateAvailableGIFList()
+    if(prevState.availableGIFList !== this.state.availableGIFList) this.updateDisplayedGIFList()
   }
+
+  // Note: doriving one state value from another requires using a (state, props) => function
+  updateDisplayedGIFList = () => this.setState((state, props) => ({ displayedGIFList: state.availableGIFList.filter(item => item.videoID === props.selectedVideoID) }) )
 
   updateAvailableGIFList = () => this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
 
@@ -82,7 +88,7 @@ class GIF extends Component {
         // Since state changes are asynchronous, the values resolved by this.state
         // when this function is called could already be stale values.
         // Use callback setState( (state, props) => ({ propA: state.propB + 1 }) )    
-        this.setState((state, props) => ({availableGIFList: [...state.availableGIFList, response]}))
+        this.setState((state, props) => ({availableGIFList: [...state.availableGIFList, response]}) )
     })
     .catch(error => {
       console.error(error)
@@ -97,7 +103,7 @@ class GIF extends Component {
     }).then(res => res.ok && res)
     .then(response => {
       console.log('Success:', response)
-      this.setState((state, props) => ({availableGIFList: state.availableGIFList.filter(item => item.id !== gifID)}))
+      this.setState((state, props) => ({availableGIFList: state.availableGIFList.filter(item => item.id !== gifID)}) )
     })
     .catch(error => {
       console.error(error)
@@ -158,9 +164,6 @@ class GIF extends Component {
   DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.id)}>Delete: {item.title}</a></li>)}</ul>
 
   render() {
-    // A purely computed value
-    const displayedGIFs = this.state.availableGIFList.filter(item => item.videoID === this.props.selectedVideoID)
-
     return (
       <div className='GIF'>
 
@@ -237,12 +240,12 @@ class GIF extends Component {
           <a>Available GIFs</a>
 
           <this.ImageGrid id='availableGIFList'
-            data={displayedGIFs}
+            data={this.state.displayedGIFList}
             srcURLBase={this.state.gifFileLocation}
           />
 
           <this.DeleteItemGrid id='deleteGIFList'
-            data={displayedGIFs}
+            data={this.state.displayedGIFList}
             onClick={(ev) => {
               this.deleteGIF(ev)
               ev.preventDefault()

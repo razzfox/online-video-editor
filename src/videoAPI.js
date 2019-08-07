@@ -366,6 +366,7 @@ app.use(function (req, res, next) {
 // Note: cacheControl and maxAge options only work if the cache-control header has not been set
 // so, only set no-store in a route AFTER this one, not before.
 // Note: although the spec requires max-age in seconds, the static function only accepts milliseconds.
+// NOTE: to use the first directory ('/public') in the URL, it must be the first argument, otherwise it mounts on '/'
 app.use(express.static(publicLocation, { cacheControl: true, maxAge: '60000' }))
 
 // a middleware with no mount path; gets executed for every request to the app

@@ -7,6 +7,12 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch Server",
+      "program": "${workspaceFolder}/src/videoAPI.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Launch React",
       "runtimeExecutable": "node",
       "runtimeArgs": [
@@ -14,12 +20,6 @@
         "${workspaceFolder}/node_modules/react-scripts/scripts/start.js",
       ],
       "port": 9229
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Launch Server",
-      "program": "${workspaceFolder}/src/videoAPI.js"
     },
     {
       "type": "chrome",

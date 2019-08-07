@@ -43,8 +43,8 @@ class GIF extends Component {
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // react to change to selectedVideoID
-    // these are independent because a new video could have new gifs
     if(prevProps.selectedVideoID !== this.props.selectedVideoID) this.updateAvailableGIFList()
+    // these are independent because a new video could have new gifs
     if(prevState.availableGIFList !== this.state.availableGIFList) this.updateDisplayedGIFList()
   }
 

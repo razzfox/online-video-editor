@@ -113,7 +113,8 @@ class GIF extends Component {
   replaceGIFSettings(event) {
     const gifID = event.target.getAttribute('data-gif-id')
     const gifItem = this.state.displayedGIFList.find(item => item.id === gifID)
-    this.setState({ ...gifItem.gifSettings })
+    const width = gifItem.gifSettings.width.split('x')[0]
+    this.setState({ ...gifItem.gifSettings, width })
   }
 
   videoPreviewFrameTimestamps() {

@@ -17,21 +17,22 @@ class GIF extends Component {
       // Note: React does not support nested state objects.
       // react will not update views because it uses shallow comparison.
 
-      // seek: number or string format [[hh:]mm:]ss[.xxx]
+      bounce: false,
+      fps: 30,
+      // time format: number or string format [[hh:]mm:]ss[.xxx]
+      length: 1,      
+      loop: true,
       start: 0,
-      // duration: same formats as above
-      length: 1,
       // may be #x# or #x?
       width: '200',
-      loop: true,
-      fps: 30,
-      bounce: false,
     }
 
+    // bind functions that will be called inside the render context
     this.fetchStateUpdate = props.fetchStateUpdate.bind(this)
     this.inputStateUpdate = props.inputStateUpdate.bind(this)
     this.putGIF = this.putGIF.bind(this)
     this.deleteGIF = this.deleteGIF.bind(this)
+    this.replaceGIFSettings = this.replaceGIFSettings.bind(this)
   }
 
   componentDidMount() {
@@ -52,19 +53,17 @@ class GIF extends Component {
   updateAvailableGIFList = () => this.fetchStateUpdate(this.state.gifAPILocation, 'availableGIFList')
 
   putGIF() {
+    const {bounce, fps, length, loop, start} = this.state
     // add properties to body object
     const body = {
       id: this.props.selectedVideoID,
-      // seek: number or string format [[hh:]mm:]ss[.xxx]
-      start: this.state.start,
-      // duration: same formats as above
-      length: this.state.length,
+      start,
+      length,
       options: {
-        // may be '#x#' or '#x?'
+        bounce,
+        fps,
+        loop,        // may be '#x#' or '#x?'
         width: `${this.state.width}x?`,
-        loop: this.state.loop,
-        fps: this.state.fps,
-        bounce: this.state.bounce,
       },
     }
 
@@ -97,7 +96,7 @@ class GIF extends Component {
   }
 
   deleteGIF(event) {
-    let gifID = event.target.getAttribute('value')
+    const gifID = event.target.getAttribute('value')
     fetch(new URL(gifID, this.state.gifAPILocation), {
       method: 'DELETE',
     }).then(res => res.ok && res)
@@ -109,6 +108,12 @@ class GIF extends Component {
       console.error(error)
       // TODO: show an error
     })
+  }
+
+  replaceGIFSettings(event) {
+    const gifID = event.target.getAttribute('data-gifid')
+    const gifItem = this.state.displayedGIFList.find(item => item.id === gifID)
+    this.setState({ ...gifItem.gifSettings })
   }
 
   videoPreviewFrameTimestamps() {
@@ -158,7 +163,7 @@ class GIF extends Component {
   FrameStartIMG = props => (this.props.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.props.selectedVideoID}/${this.state.start}`} />) || null
 
   // takes an array of {id, filename} objects, custom attributes must be lowercase
-  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} data-gifid={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>
+  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} onClick={props.onClick} data-gifid={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>
 
   // takes an array of {id, title} objects
   DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><button onClick={props.onClick} value={(item.id)}>Delete: {item.title}</button></li>)}</ul>
@@ -242,6 +247,7 @@ class GIF extends Component {
           <this.ImageGrid id='availableGIFList'
             data={this.state.displayedGIFList}
             srcURLBase={this.state.gifFileLocation}
+            onClick={this.replaceGIFSettings}
           />
 
           <this.DeleteItemGrid id='deleteGIFList'

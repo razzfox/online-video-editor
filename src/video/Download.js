@@ -137,7 +137,7 @@ class Download extends Component {
         Download Video URL
       </button>
 
-      <a>Active Downloads</a>
+      <h3>Active Downloads</h3>
       <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
       <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
     

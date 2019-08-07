@@ -157,11 +157,11 @@ class GIF extends Component {
 
   FrameStartIMG = props => (this.props.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.props.selectedVideoID}/${this.state.start}`} />) || null
 
-  // takes an array of {id, filename} objects
-  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} alt={item.id} src={new URL(item.filename, props.srcURLBase)} />)}</div>
+  // takes an array of {id, filename} objects, custom attributes must be lowercase
+  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} data-gifid={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>
 
   // takes an array of {id, title} objects
-  DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><a onClick={props.onClick} value={(item.id)}>Delete: {item.title}</a></li>)}</ul>
+  DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><button onClick={props.onClick} value={(item.id)}>Delete: {item.title}</button></li>)}</ul>
 
   render() {
     return (
@@ -237,7 +237,7 @@ class GIF extends Component {
         </div>
 
         <div className='section'>
-          <a>Available GIFs</a>
+          <h3>Available GIFs</h3>
 
           <this.ImageGrid id='availableGIFList'
             data={this.state.displayedGIFList}

@@ -18,7 +18,6 @@ class GIF extends Component {
 
       // Note: React does not support nested state objects.
       // react will not update views because it uses shallow comparison.
-
       bounce: false,
       fps: 30,
       // time format: number or string format [[hh:]mm:]ss[.xxx]
@@ -40,18 +39,25 @@ class GIF extends Component {
 
   componentDidMount() {
     this.updateAvailableGIFList()
-    if(this.props.selectedVideoInfo && this.state.start > this.props.selectedVideoInfo.format.duration) this.setState({ start: 0 })
-    if(this.props.selectedVideoInfo) this.setState({ frameStepUnit: this.frameStepUnit() })
+
+    if(this.props.selectedVideoInfo && this.state.start > this.props.selectedVideoInfo.format.duration)
+      this.setState({ start: 0 })
+    if(this.props.selectedVideoInfo)
+      this.setState({ frameStepUnit: this.frameStepUnit() })
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // react to change to selectedVideoID
-    if(prevProps.selectedVideoID !== this.props.selectedVideoID) this.updateAvailableGIFList()
+    if(prevProps.selectedVideoID !== this.props.selectedVideoID)
+      this.updateAvailableGIFList()
     // react to change to selectedVideoInfo
-    if(prevProps.selectedVideoInfo !== this.props.selectedVideoInfo && this.state.start > this.props.selectedVideoInfo.format.duration) this.setState({ start: 0 })
-    if(prevProps.selectedVideoInfo !== this.props.selectedVideoInfo) this.setState({ frameStepUnit: this.frameStepUnit() })
+    if(prevProps.selectedVideoInfo !== this.props.selectedVideoInfo && this.state.start > this.props.selectedVideoInfo.format.duration)
+      this.setState({ start: 0 })
+    if(prevProps.selectedVideoInfo !== this.props.selectedVideoInfo)
+      this.setState({ frameStepUnit: this.frameStepUnit() })
     // these are independent because a new video could have new gifs
-    if(prevState.availableGIFList !== this.state.availableGIFList) this.updateDisplayedGIFList()
+    if(prevState.availableGIFList !== this.state.availableGIFList)
+      this.updateDisplayedGIFList()
   }
 
   // Note: deriving one state value from another requires using a (state, props) => function
@@ -69,8 +75,8 @@ class GIF extends Component {
       options: {
         bounce,
         fps,
-        loop,        // may be '#x#' or '#x?'
-        width: `${this.state.width}x?`,
+        loop,
+        width: `${this.state.width}x?`, // may be '#x#' or '#x?'
       },
     }
 
@@ -90,16 +96,13 @@ class GIF extends Component {
     })
     .then(response => {
       // Redirect because resource already exists
-        console.log('Created GIF', response)
-        // Since state changes are asynchronous, the values resolved by this.state
-        // when this function is called could already be stale values.
-        // Use callback setState( (state, props) => ({ propA: state.propB + 1 }) )    
-        this.setState((state, props) => ({availableGIFList: [...state.availableGIFList, response]}) )
+      console.log('Created GIF', response)
+      // Since state changes are asynchronous, the values resolved by this.state
+      // when this function is called could already be stale values.
+      // Use callback setState( (state, props) => ({ propA: state.propB + 1 }) )    
+      this.setState((state, props) => ({availableGIFList: [...state.availableGIFList, response]}) )
     })
-    .catch(error => {
-      console.error(error)
-      // TODO: show an error
-    })
+    .catch(error => console.error(error) )
   }
 
   deleteGIF(event) {
@@ -111,10 +114,7 @@ class GIF extends Component {
       console.log('Deleted GIF', response)
       this.setState((state, props) => ({availableGIFList: state.availableGIFList.filter(item => item.id !== gifID)}) )
     })
-    .catch(error => {
-      console.error(error)
-      // TODO: show an error
-    })
+    .catch(error => console.error(error) )
   }
 
   replaceGIFSettings(event) {
@@ -124,15 +124,8 @@ class GIF extends Component {
     this.setState({ ...gifItem.gifSettings, width })
   }
 
-  frameStepUnit() {
-    if(!this.props.selectedVideoID) return 1
-
-    let duration = this.props.selectedVideoInfo.format.duration
-    // [maxLength, step] (all in seconds)
-    let steps = [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ]
-    
-    return steps.find(([maxLength, step]) => duration < maxLength )[1]
-  }
+  // [maxLength, step] in seconds
+  frameStepUnit = () => [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ].find(([maxLength, step]) => this.props.selectedVideoInfo.format.duration <= maxLength )[1]
 
   // takes an array of {id, filename} objects, custom attributes must be lowercase
   ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} onClick={props.onClick} data-gif-id={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>

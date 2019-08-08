@@ -4,12 +4,8 @@ import Download from './video/Download';
 import GIF from './gif/GIF';
 
 
-// This project is build as JSON API first, then React and HTML. Backend content, then frontend navigation.
-// Last gif app was front and back ends simultaneously (using Bash CGI scripts), and that was bare-bones simple.
-
-// TODO: Create a websocket that listens for server changes (new GIFs, new Videos, downloadQueue changes)
-
-// Note: Redux is not used here because top component state management is sufficient for small apps
+// This project is build as JSON API first, then React and HTML.
+// Redux is not used here because top component state management is sufficient for small apps.
 
 class App extends Component {
   constructor(props) {
@@ -19,7 +15,6 @@ class App extends Component {
 
     this.state = {
       backendLocation,
-
       videoAPILocation: new URL('videos/', backendLocation),
 
       selectedVideoID: new URL(window.location.href).searchParams.get('videoID') || '',
@@ -41,14 +36,16 @@ class App extends Component {
 
   componentDidMount() {
     // first time selectedVideoID
-    if(this.state.selectedVideoID) this.updateSelectedVideoInfo()
+    if(this.state.selectedVideoID)
+      this.updateSelectedVideoInfo()
 
     this.updateAvailableVideoList()
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // react to change to selectedVideoID
-    if(prevState.selectedVideoID !== this.state.selectedVideoID) this.updateSelectedVideoInfo()
+    if(prevState.selectedVideoID !== this.state.selectedVideoID)
+      this.updateSelectedVideoInfo()
   }
 
   // TODO: Use memoization (aka caching/collection)
@@ -79,9 +76,7 @@ class App extends Component {
       console.log(`Fetched ${stateVariable}`, res)
       this.setState({[stateVariable]: res}, callback)
     })
-    .catch(error => {
-      console.error(`Fetch error ${apiLocation} ${stateVariable}`, error)
-    })
+    .catch(error => console.error(`Fetch error ${apiLocation} ${stateVariable}`, error) )
   }
 
   // this helper function updates state in a standardized way based on event target name

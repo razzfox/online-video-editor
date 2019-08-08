@@ -23,14 +23,36 @@ class Download extends Component {
     this.inputStateUpdate = props.inputStateUpdate.bind(this)
   }
 
-  getVideoFile() {
-    // Add video html element
+  postDownloadURL() {
+    // Using HTML forms has the unnecessary side effect of reloading the page with the response,
+    // so if this is an onSubmit event, we have to prevent page navigation
+    // event.preventDefault()
+
+    // Warning: the 'no-cors' option *silently* disables sending the body
+    fetch(this.state.downloadsRoute, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ url: this.state.downloadURL }), // body data type must match 'Content-Type' header
+    }).then(res => res.ok && res.json())
+    .then(response => {
+      console.log('downloadURL', response)
+      this.setState({downloadResponse: response})
+      // start monitoring download progress (only if list is empty, to prevent double requests)
+      this.state.downloadProgressList.length === 0 && this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
+    })
+    .catch(error => {
+      console.error('downloadURL Error', error)
+      this.setState({downloadResponse: JSON.stringify(error)})
+    })
   }
 
   continueDownloadProgressList() {
     // if downloads are in progress, update list and call this function again
-    if(this.state.downloadProgressList.length > 0) this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
-    else {
+    if(this.state.downloadProgressList.length > 0) {
+      this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
+    } else {
       // after all downloads finish, do not call this function again
       // update parent's videoList and selectedVideoID
       this.props.updateAvailableVideoList(this.state.downloadResponse && this.state.downloadResponse.id)
@@ -52,58 +74,6 @@ class Download extends Component {
     })
     .catch(error => {
       console.error('deleteVideoID Error', error)
-      this.setState({downloadResponse: JSON.stringify(error)})
-    })
-  }
-
-  // file upload
-  // postVideoFile() {
-  //   var formData = new FormData();
-  //   var fileField = document.querySelector('input[type='file']');
-  //
-  //   // var photos = document.querySelector('input[type='file'][multiple]');
-  //   //
-  //   // formData.append('title', 'My Vegas Vacation');
-  //   // for (var i = 0; i < photos.files.length; i++) {
-  //   //   formData.append('photos', photos.files[i]);
-  //   // }
-  //
-  //   formData.append('username', 'abc123');
-  //   formData.append('avatar', fileField.files[0]);
-  //
-  //   fetch('https://example.com/profile/avatar', {
-  //     method: 'PUT',
-  //     body: formData
-  //   })
-  //   .then(response => response.json())
-  //   .catch(error => console.error(error))
-  //   .then(response => console.log('VideoFileSuccess:', JSON.stringify(response)));
-  // }
-
-  postDownloadURL() {
-    // Using HTML forms has the unnecessary side effect of reloading the page with the response,
-    // so if this is an onSubmit event, we have to prevent page navigation
-    // event.preventDefault()
-    console.log('POST downloadURL', this.state.downloadURL)
-
-    const url = this.state.downloadURL
-
-    // Note: the 'no-cors' option *silently* disables sending the body
-    fetch(this.state.downloadsRoute, {
-        method: 'POST', // *GET, POST, PUT, DELETE, etc.
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({url}), // body data type must match 'Content-Type' header
-    }).then(res => res.ok && res.json())
-    .then(response => {
-      console.log('downloadURL', response)
-      this.setState({downloadResponse: response})
-      // start monitoring download progress
-      this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
-    })
-    .catch(error => {
-      console.error('downloadURL Error', error)
       this.setState({downloadResponse: JSON.stringify(error)})
     })
   }

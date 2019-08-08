@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import Download from './video/Download';
-import GIF from './gif/GIF';
+import Clip from './video/Clip';
 
 
 // This project is build as JSON API first, then React and HTML.
@@ -85,7 +85,7 @@ class App extends Component {
   }
 
   SelectVideo = () => <div className='section'>
-    <h1 className='intro'>Select clip</h1>
+    <h1 className='intro'>Select Video</h1>
     <this.DropdownList
       id='selectedVideoID'
       data={this.state.availableVideoList}
@@ -102,11 +102,11 @@ class App extends Component {
       <div className='App'>
         <div className='App-header'>
           <h1 className='App-logo'><span role='img' aria-label='logo'>⭐</span></h1>
-          <h2>Razz's GIF Generator ({process.env.NODE_ENV})</h2>
+          <h2>Razz's Online Video Editor ({process.env.NODE_ENV})</h2>
         </div>
         {/* TODO: React-Router */}
         <this.SelectVideo />
-        <GIF {...this.state} />
+        <Clip {...this.state} />
         <Download {...this.state}
           updateAvailableVideoList={this.updateAvailableVideoList}
         />

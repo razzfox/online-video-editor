@@ -14,6 +14,8 @@ class GIF extends Component {
       availableGIFList: [],
       displayedGIFList: [],
 
+      frameStepUnit: 1,
+
       // Note: React does not support nested state objects.
       // react will not update views because it uses shallow comparison.
 
@@ -37,13 +39,17 @@ class GIF extends Component {
   }
 
   componentDidMount() {
-    // first time selectedVideoID
-    if(this.props.selectedVideoID) this.updateAvailableGIFList()
+    this.updateAvailableGIFList()
+    if(this.props.selectedVideoInfo && this.state.start > this.props.selectedVideoInfo.format.duration) this.setState({ start: 0 })
+    if(this.props.selectedVideoInfo) this.setState({ frameStepUnit: this.frameStepUnit() })
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // react to change to selectedVideoID
     if(prevProps.selectedVideoID !== this.props.selectedVideoID) this.updateAvailableGIFList()
+    // react to change to selectedVideoInfo
+    if(prevProps.selectedVideoInfo !== this.props.selectedVideoInfo && this.state.start > this.props.selectedVideoInfo.format.duration) this.setState({ start: 0 })
+    if(prevProps.selectedVideoInfo !== this.props.selectedVideoInfo) this.setState({ frameStepUnit: this.frameStepUnit() })
     // these are independent because a new video could have new gifs
     if(prevState.availableGIFList !== this.state.availableGIFList) this.updateDisplayedGIFList()
   }
@@ -118,11 +124,11 @@ class GIF extends Component {
     this.setState({ ...gifItem.gifSettings, width })
   }
 
-  videoPreviewFrameSteps() {
+  frameStepUnit() {
     if(!this.props.selectedVideoID) return 1
 
     let duration = this.props.selectedVideoInfo.format.duration
-    // [lengthSeconds, frameStep]
+    // [maxLength, step] (all in seconds)
     let steps = [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ]
     
     return steps.find(([maxLength, step]) => duration < maxLength )[1]
@@ -145,6 +151,7 @@ class GIF extends Component {
             selectedVideoInfo={this.props.selectedVideoInfo}
 
             start={this.state.start}
+            step={this.state.frameStepUnit}
             ImageGrid={this.ImageGrid}
           />
 
@@ -160,7 +167,7 @@ class GIF extends Component {
               name='start'
               min={0}
               max={this.props.selectedVideoInfo.format.duration}
-              step={this.videoPreviewFrameSteps()}
+              step={this.state.frameStepUnit}
               value={this.state.start}
               onChange={this.inputStateUpdate}
             />

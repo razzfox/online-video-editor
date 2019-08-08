@@ -13,51 +13,29 @@ class Preview extends Component {
     // reassign context for borrowed functions
   }
 
-  componentDidMount() {
-    // first time selectedVideoID
-    // if(this.props.selectedVideoID) this.updateAvailableGIFList()
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    // react to change to selectedVideoID
-    // if(prevProps.selectedVideoID !== this.props.selectedVideoID) this.updateAvailableGIFList()
-  }
-
   videoPreviewFrameTimestamps() {
-    if(!this.props.selectedVideoID) return []
+    // if(!this.props.selectedVideoInfo.format.duration) return []
 
-    // let start = Number.parseFloat(this.state.start, 10)
-    // use integers to keep preview frames at regular intervals
-    let start = Number.parseInt(this.props.start, 10)
+    let start = Number.parseFloat(this.props.start, 10)
+    // let start = this.props.start
 
     // length is not longer than the duration minus the start time
-    // add 1 to include the final frame?
-    let length = this.props.selectedVideoInfo.format.duration - start + 1
-    
-    // max length on screen
-    if(length > 8) length = 8
+    let length = Number.parseFloat(this.props.selectedVideoInfo.format.duration, 10) - start
 
-    // if(start + length > length) length = length - start
+    // if frameUnits are greater than the time of the final frame, it will not be seen
+    // ex: unit=1s, duration=6.315, last frame seen=6:00
+
+    // fixed decimal point
+    length = Number.parseFloat(length.toFixed(1))
+
+    // max number of frames on screen
+    // if(length > 8) length = 8
+    length = Math.min(length, 8)
 
     // creates an array of {id, filename} objects
-    let previewDegree = 'seconds'
-    switch(previewDegree) {
-      case 'seconds':
-        // shift by 1 to allow start frame in another component
-        return Array.from({length}, (value, id) => ({id, filename: id + start}) ).slice(1)
-        // break;
-      case 'frames':
-        return Array.from({length}, (value, id) => ({id, filename: `:${id + start}`}) ).slice(1)
-        // break;
-      case 'deciseconds':
-        return Array.from({length}, (value, id) => ({id, filename: (id/10) + start}) ).slice(1)
-        // break;
-      default:
-        return []
-    }
+    if(length < 1) return Array.from({length: length*10}, (value, id) => ({id, filename: (id/10) + start}) )
+    else return Array.from({length}, (value, id) => ({id, filename: id + start}) )
   }
-
-  FrameStartIMG = props => (this.props.selectedVideoID && <img id='frameStartIMG' alt='start frame' src={`${this.state.frameCacheAPILocation}${this.props.selectedVideoID}/${this.props.start}`} />) || null
 
   render() {
     return (
@@ -65,9 +43,6 @@ class Preview extends Component {
 
         <div className='section'>
           <div className='flex-container'>
-            <div>{/* div required for alignment */}
-              <this.FrameStartIMG />
-            </div>
             <this.props.ImageGrid id='frameStartList'
               data={this.videoPreviewFrameTimestamps()}
               srcURLBase={new URL(this.props.selectedVideoID + '/', this.state.frameCacheAPILocation)}

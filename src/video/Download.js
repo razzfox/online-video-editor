@@ -44,15 +44,14 @@ class Download extends Component {
   deleteVideoID() {
     fetch(new URL(this.props.selectedVideoID, this.props.videoAPILocation), {
         method: 'DELETE',
-    }).then(res => res.ok)
-    .then(response => {
-      console.log('deleteVideoID Success:', response)
+    }).then(response => {
+      console.log('deleteVideoID', response)
       const deletedItem = this.props.availableVideoList.find(video => video.id === this.props.selectedVideoID)
-      this.setState({downloadResponse: `Deleted ${deletedItem.title}`})
+      deletedItem && this.setState({downloadResponse: `Deleted ${deletedItem.title}`})
       this.props.updateAvailableVideoList()
     })
     .catch(error => {
-      console.error('deleteVideoID Error:', error)
+      console.error('deleteVideoID Error', error)
       this.setState({downloadResponse: JSON.stringify(error)})
     })
   }
@@ -98,7 +97,7 @@ class Download extends Component {
         body: JSON.stringify({url}), // body data type must match 'Content-Type' header
     }).then(res => res.ok && res.json())
     .then(response => {
-      console.log('downloadURL Success', response)
+      console.log('downloadURL', response)
       this.setState({downloadResponse: response})
       // start monitoring download progress
       this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)

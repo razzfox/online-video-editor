@@ -538,7 +538,7 @@ const deleteFrameCache = (req, res) => {
       return
     }
 
-    console.log('success!')
+    console.log('Deleted videoFrameCache', videoFrameCache)
     res.sendStatus(200).end()
     return
   }

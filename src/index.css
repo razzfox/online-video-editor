@@ -28,15 +28,35 @@ body {
 }
 
 button {
-  width: 15em;
-  height: 2.5em;
+  width: 30em;
+  height: 4em;
   margin-top: 2em;
   margin-bottom: 2em;
 }
 
-pre {
+pre, select, textarea {
   /* Wrap text */
   max-width: 75%;
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Prevent iOS input zoom */
+input[type="color"],
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"],
+select,
+textarea {
+  font-size: 1em;
 }

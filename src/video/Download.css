@@ -6,12 +6,6 @@
   margin-top: 2em;
 }
 
-.Download label * {
-  display: flex;
-  margin: 0.5em;
-}
-
 .Download #downloadURL {
-  width: 25em;
-  height: 5em;
+  height: 3em;
 }

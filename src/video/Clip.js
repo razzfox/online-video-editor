@@ -164,7 +164,7 @@ class Clip extends Component {
             ImageGrid={this.ImageGrid}
           />
 
-          <label>Start at (seconds):
+          <label>Start clip (seconds):
             <input
               type='number'
               name='start'
@@ -184,7 +184,7 @@ class Clip extends Component {
               onChange={this.inputStateUpdate}
             />
           </label>
-          <label>Length:
+          <label>Length (seconds):
             <input
               type='number'
               name='length'
@@ -204,7 +204,7 @@ class Clip extends Component {
               onChange={this.inputStateUpdate}
             />
           </label>
-          <label>Size:
+          <label>Width (pixels):
             <input
               type='number'
               name='width'

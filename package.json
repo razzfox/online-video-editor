@@ -1,5 +1,5 @@
 {
-  "name": "electron-gifs",
+  "name": "electron-video-editor",
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
@@ -25,7 +25,7 @@
     "build": "npm run build-react && npm run build-electron",
     "build-electron": "electron-packager . --overwrite",
     "build-react": "react-scripts build",
-    "update-build": "react-scripts build && cp -r build src electron-gifs-darwin-x64/electron-gifs.app/Contents/Resources/app/",
+    "update-build": "react-scripts build && cp -r build src electron-video-editor-darwin-x64/electron-video-editor.app/Contents/Resources/app/",
     "test": "react-scripts test --env=jsdom",
     "react-start": "react-scripts start; npm run react-stop",
     "react-stop": "pkill -f 'start.js'"

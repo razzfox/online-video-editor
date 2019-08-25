@@ -7,9 +7,9 @@ class Clip extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      clipAPILocation: new URL('gifs/', props.backendLocation),
+      clipAPILocation: new URL('clips/', props.backendLocation),
       // TODO: ClipFileLocation is different for web and electron clients
-      clipFileLocation: new URL('gifs/', props.backendLocation),
+      clipFileLocation: new URL('clips/', props.backendLocation),
 
       availableClipList: [],
       displayedClipList: [],
@@ -21,12 +21,12 @@ class Clip extends Component {
       bounce: false,
       fps: 30,
       // time format: number or string format [[hh:]mm:]ss[.xxx]
-      length: 1,
+      length: 3,
       lengthMax: 5,
       loop: true,
       start: 0,
       // may be #x# or #x?
-      width: '200',
+      width: '400',
     }
 
     // bind functions that will be called inside the render context
@@ -136,8 +136,13 @@ class Clip extends Component {
   replaceClipSettings(event) {
     const itemID = event.target.getAttribute('data-item-id')
     const item = this.state.displayedClipList.find(item => item.id === itemID)
+    if(! item || ! item.clipSettings) {
+      console.error('clip settings not replaced', item)
+      return
+    }
+
     const width = item.clipSettings.width.split('x')[0]
-    this.setState({ ...item.gifSettings, width })
+    this.setState({ ...item.clipSettings, width })
   }
 
   // [maxLength, step] in seconds

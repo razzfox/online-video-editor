@@ -18,26 +18,26 @@ class VideoItem {
   }
 }
 
-class GIFItem {
-  constructor(videoID, title, filename, gifSettings) {
+class ClipItem {
+  constructor(videoID, title, filename, clipSettings) {
     this.id = uuidgen()
     this.videoID = videoID
     this.title = title
     this.filename = `${filename}_${this.id}.gif`
 
     // TODO: make this an options object
-    this.gifSettings = gifSettings
+    this.clipSettings = clipSettings
 
     // TODO: add fields to reduce JS engine class mutations (speedup)
     // example: created by, creation date, filesize
 
 
     // Possibly generate a long name when downloading
-    // let gifFilename = `${path.parse(videoItem.filename)}_${gifRequest.start}_${gifRequest.length}_${gifRequest.options.width}_${gifRequest.options.loop}_${gifRequest.options.fps}_${gifRequest.options.bounce}.gif`
+    // let clipFilename = `${path.parse(videoItem.filename)}_${clipRequest.start}_${clipRequest.length}_${clipRequest.options.width}_${clipRequest.options.loop}_${clipRequest.options.fps}_${clipRequest.options.bounce}.gif`
   }
 }
 
-class GIFSettings {
+class ClipSettings {
   constructor(start, length, options) {
     // seek: number or string format [[hh:]mm:]ss[.xxx]
     this.start = start
@@ -144,8 +144,8 @@ const deleteFiles = (...arguments) => {
 
 module.exports = {
   VideoItem: VideoItem,
-  GIFItem: GIFItem,
-  GIFSettings: GIFSettings,
+  ClipItem: ClipItem,
+  ClipSettings: ClipSettings,
   Database: Database,
   makeStorageDirs: makeStorageDirs,
   deleteFiles: deleteFiles,

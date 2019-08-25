@@ -10,7 +10,7 @@ const express = require('express')
 // This api will add routes to the videoAPI express object
 const router = module.exports = express.Router()
 
-console.log('Starting GIF API')
+console.log('Starting Clip API')
 
 // Process Current Working Directory
 // const __processDir = path.dirname(process.mainModule.filename)
@@ -24,15 +24,15 @@ console.log('Starting GIF API')
 const publicLocation = path.join(__dirname, '..', 'public')
 const videoDir = path.join(publicLocation, 'videos')
 
-const gifDir = path.join(publicLocation, 'gifs')
-const gifCacheDir = path.join(publicLocation, 'gifCache')
+const clipDir = path.join(publicLocation, 'clips')
+const clipCacheDir = path.join(publicLocation, 'clipCache')
 const frameCacheDir = path.join(publicLocation, 'frames')
-const gifDatabaseFile = path.join(__dirname, '..', 'gifDatabase.json')
+const clipDatabaseFile = path.join(__dirname, '..', 'clipDatabase.json')
 const metadataDatabaseFile = path.join(__dirname, '..', 'metadataDatabase.json')
 
 // initialize storage
-database.makeStorageDirs(gifDir, frameCacheDir)
-const gifDatabase = new database.Database('GIFs', gifDatabaseFile)
+database.makeStorageDirs(clipDir, frameCacheDir)
+const clipDatabase = new database.Database('Clips', clipDatabaseFile)
 const metadataDatabase = new database.Database('Metadata', metadataDatabaseFile)
 
 let videoRequestQueue = []
@@ -84,8 +84,8 @@ const getVideoInfo = (req, res) => {
   return
 }
 
-// TODO: Can FFMPEG merge GIFs?
-const mergeGIFs = gifFilenames => {
+// TODO: Can FFMPEG merge Clips?
+const mergeClips = clipFilenames => {
   // create child process
   // convert 1.gif 2.gif out.gif
   return
@@ -109,19 +109,19 @@ const checkBodyForErrors = (req, res) => {
     return
   }
 
-  // TODO: Check for valid GIFSettings
+  // TODO: Check for valid ClipSettings
 }
 
-const putVideoToGIF = (req, res) => {
+const putVideoToClip = (req, res) => {
   checkBodyForErrors(req, res)
 
-  let gifRequest = req.body
-  console.log('videoID: ' + gifRequest.id)
+  let clipRequest = req.body
+  console.log('videoID: ' + clipRequest.id)
 
   // Get video out of database
   let videoDatabase = res.locals.videoDatabase
-  // let videoItem = videoDatabase.get(gifRequest.videoID)
-  let videoItem = videoDatabase.get(gifRequest.id)
+  // let videoItem = videoDatabase.get(clipRequest.videoID)
+  let videoItem = videoDatabase.get(clipRequest.id)
 
   if(!videoItem) {
     // Not Found
@@ -131,43 +131,43 @@ const putVideoToGIF = (req, res) => {
 
   let videoPath = path.join(videoDir, videoItem.filename)
 
-  let gifSettings = new database.GIFSettings(gifRequest.start, gifRequest.length, gifRequest.options)
-  let gifSettingsJSON = JSON.stringify(gifSettings)
-  console.log('GIFSettings: ' + gifSettingsJSON)
+  let clipSettings = new database.ClipSettings(clipRequest.start, clipRequest.length, clipRequest.options)
+  let clipSettingsJSON = JSON.stringify(clipSettings)
+  console.log('ClipSettings: ' + clipSettingsJSON)
 
-  // Since there are going to be so many gifs used for previews, we need UUIDs
-  let gifItem = new database.GIFItem(videoItem.id, videoItem.title, path.parse(videoItem.filename).name, gifSettings)
+  // Since there are going to be so many clips used for previews, we need UUIDs
+  let clipItem = new database.ClipItem(videoItem.id, videoItem.title, path.parse(videoItem.filename).name, clipSettings)
 
-  // Verify that no gif already in the database matches requested settings
-  let gifsUsingVideoID = gifDatabase.findItemsByKey('videoID', videoItem.id)
-  let matchingGIFSettings = gifsUsingVideoID.find(item => JSON.stringify(item.gifSettings) === gifSettingsJSON)
-  if(!matchingGIFSettings) {
-    let gifPath = path.join(gifDir, gifItem.filename)
+  // Verify that no clip already in the database matches requested settings
+  let clipsUsingVideoID = clipDatabase.findItemsByKey('videoID', videoItem.id)
+  let matchingClipSettings = clipsUsingVideoID.find(item => JSON.stringify(item.clipSettings) === clipSettingsJSON)
+  if(!matchingClipSettings) {
+    let clipPath = path.join(clipDir, clipItem.filename)
     // Note: seek is relative, so it can be called multiple times and video gets
     // decoded while seeking, but seekInput sets the start point, and skips decoding
     let process = ffmpeg(videoPath)
-      .output(gifPath)
-      .seekInput(gifSettings.start)
-      .duration(gifSettings.length)
-      .size(gifSettings.width)
+      .output(clipPath)
+      .seekInput(clipSettings.start)
+      .duration(clipSettings.length)
+      .size(clipSettings.width)
 
       .on('start', () => {
-        console.time('ffmpeg-' + gifItem.filename)
+        console.time('ffmpeg-' + clipItem.filename)
 
-        console.log('starting GIF conversion')
-        // res.status(201).json(gifItem).end()
+        console.log('starting Clip conversion')
+        // res.status(201).json(clipItem).end()
         // return
       })
       // .on('progress', (progress) => {
       //   console.log(progress);
       // })
       .on('end', () => {
-        console.timeEnd('ffmpeg-' + gifItem.filename)
+        console.timeEnd('ffmpeg-' + clipItem.filename)
 
         // add to database
-        gifDatabase.add(gifItem)
+        clipDatabase.add(clipItem)
 
-        res.status(201).json(gifItem).end()
+        res.status(201).json(clipItem).end()
         return
       })
       .on('error', (error, stdout, stderr) => {
@@ -181,11 +181,11 @@ const putVideoToGIF = (req, res) => {
       // auto-include boomerang version
       // provide multiple file sizes (and gifv)
   } else {
-    // existing GIF found
-    let gifRoute = path.join(req.route.path, matchingGIFSettings.id)
-    console.log('Redirect client to: ' + gifRoute);
+    // existing Clip found
+    let clipRoute = path.join(req.route.path, matchingClipSettings.id)
+    console.log('Redirect client to: ' + clipRoute);
 
-    res.setHeader('Location', gifRoute)
+    res.setHeader('Location', clipRoute)
     // File Exists, redirect (302 is the redirect equivalent of 202)
     // 303 means use GET to continue, and 307 means reuse the same request method.
     res.sendStatus(303).end()
@@ -197,19 +197,19 @@ const putVideoToGIF = (req, res) => {
   return
 }
 
-const getGIFList = (req, res) => {
+const getClipList = (req, res) => {
   console.log('sending database JSON')
-  res.json(gifDatabase.all())
+  res.json(clipDatabase.all())
 }
 
-const getGIFInfo = (req, res) => {
-  console.log('gifID: ' + req.params.gifID)
+const getClipInfo = (req, res) => {
+  console.log('clipID: ' + req.params.clipID)
 
-  // Get gif out of database
-  let gifItem = gifDatabase.get(req.params.gifID)
+  // Get clip out of database
+  let clipItem = clipDatabase.get(req.params.clipID)
 
-  if (!!gifItem) {
-    res.status(200).json(gifItem).end()
+  if (!!clipItem) {
+    res.status(200).json(clipItem).end()
     return
   }
   ////
@@ -220,23 +220,23 @@ const getGIFInfo = (req, res) => {
   res.sendStatus(404).end()
 }
 
-// TODO: How to delete gifCache and frameCache on deletion?
+// TODO: How to delete clipCache and frameCache on deletion?
 
-const deleteGIF = (req, res) => {
-  console.log('gifID: ' + req.params.gifID)
+const deleteClip = (req, res) => {
+  console.log('clipID: ' + req.params.clipID)
 
-  // Get gif out of database
-  let gifItem = gifDatabase.get(req.params.gifID)
+  // Get clip out of database
+  let clipItem = clipDatabase.get(req.params.clipID)
 
-  if (!!gifItem) {
+  if (!!clipItem) {
     // This is not in the database so that it is hidden from the user
-    let gifPath = path.join(gifDir, gifItem.filename)
+    let clipPath = path.join(clipDir, clipItem.filename)
 
     // delete file
-    database.deleteFiles(gifPath)
+    database.deleteFiles(clipPath)
 
     // remove from database
-    gifDatabase.remove(gifItem)
+    clipDatabase.remove(clipItem)
 
     res.sendStatus(200).end()
     return
@@ -249,7 +249,7 @@ const deleteGIF = (req, res) => {
   res.sendStatus(404).end()
 }
 
-const postGIFCache = (req, res) => {
+const postClipCache = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
   
   // Get video out of database
@@ -264,13 +264,13 @@ const postGIFCache = (req, res) => {
 
   // This is not in the database so that it is hidden from the user
   let videoPath = path.join(videoDir, videoItem.filename)
-  let gifCache = path.join(gifCacheDir, videoItem.id)
+  let clipCache = path.join(clipCacheDir, videoItem.id)
 
   if (fs.existsSync(videoPath)) {
     // if cache folder does not exist, create it
-    if (!fs.existsSync(gifCache)) {
+    if (!fs.existsSync(clipCache)) {
       // make storage dir
-      database.makeStorageDirs(gifCache)
+      database.makeStorageDirs(clipCache)
     }
   }
 
@@ -283,7 +283,7 @@ const postGIFCache = (req, res) => {
     for (let index = 0; index < videoMetadata.format.duration; index++) {
       process.seekInput(index)
       process.duration(1)
-      process.output(`${gifCache}/${index}.gif`)
+      process.output(`${clipCache}/${index}.gif`)
     }
     // process.on('progress', (progress) => {
     //   console.log(progress);
@@ -354,9 +354,9 @@ const postFrameCache = (req, res) => {
 
         console.log('Frames finished exporting')
 
-        // GIF cache
-        // console.log('starting GIF cache')
-        // gifCache(videoPath)
+        // Clip cache
+        // console.log('starting Clip cache')
+        // clipCache(videoPath)
       })
       .on('error', (error, stdout, stderr) => {
         console.error(error)
@@ -551,10 +551,10 @@ const deleteFrameCache = (req, res) => {
 }
 
 // TODO: Repair
-const repairGIFList = (req, res) => {
-  // remove gif datbase items without existing files (or recreate the gifs?)
+const repairClipList = (req, res) => {
+  // remove clip datbase items without existing files (or recreate the clips?)
 
-  // enumerate all gif files that do not have a database item
+  // enumerate all clip files that do not have a database item
 
   // recreate the database items for the orphan files
   // match the filename/title to the video filename
@@ -572,29 +572,29 @@ const repairGIFList = (req, res) => {
 router.get('/videos/:videoID/info', getVideoInfo)
 
 // Reminder: Body only parses when header Content-Type: application/json
-// convert video to gif
-router.put('/gifs', putVideoToGIF)
+// convert video to clip
+router.put('/clips', putVideoToClip)
 
-// get all gifs as array
-router.get('/gifs', getGIFList)
+// get all clips as array
+router.get('/clips', getClipList)
 
-// download gif file
+// download clip file
 // this can be handled by the public directory
-// router.get('/gifs/:gifID', getGIFFile)
+// router.get('/clips/:clipID', getClipFile)
 
-// get gif info
-router.get('/gifs/:gifID', getGIFInfo)
+// get clip info
+router.get('/clips/:clipID', getClipInfo)
 
-// get all gifs from videoID
+// get all clips from videoID
 // (data sorting needs to be done on the frontend)
 
-// delete gif
-router.delete('/gifs/:gifID', deleteGIF)
+// delete clip
+router.delete('/clips/:clipID', deleteClip)
 
 // provide frame cache state on post (not get)
 // This is because the action may cause new files to be created
 //
-// include low-q gif cache
+// include low-q clip cache
 // select video file / edit video again -> return frame cache
 router.post('/frames/:videoID', postFrameCache)
 
@@ -605,5 +605,5 @@ router.delete('/frames/:videoID', deleteFrameCache)
 router.get('/frames/:videoID/:frameStartTime', getVideoFrame)
 
 // TODO: animated grid
-router.post('/gifcache/:videoID', postGIFCache)
-// router.delete('/gifcache/:videoID', deleteGIFCache)
+router.post('/clipcache/:videoID', postClipCache)
+// router.delete('/clipcache/:videoID', deleteClipCache)

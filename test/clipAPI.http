@@ -1,7 +1,7 @@
 @host = http://localhost:3080
 
-# @name gifList
-GET {{host}}/gifs
+# @name clipList
+GET {{host}}/clips
 
 ####
 # @name videoList
@@ -12,10 +12,10 @@ GET {{host}}/videos
 GET {{host}}/videos/{{videoID}}/info
 
 ####
-# @name putGIF
+# @name putClip
 @videoID = {{videoList.response.body.$[0].id}}
 
-PUT {{host}}/gifs
+PUT {{host}}/clips
 Content-Type: application/json
 
 {
@@ -26,14 +26,14 @@ Content-Type: application/json
 }
 
 ####
-# @name getGIFInfo
-@gifID = {{gifList.response.body.$[0].id}}
-@filename = {{gifList.response.body.$[0].filename}}
-GET {{host}}/gifs/{{gifID}}
+# @name getClipInfo
+@clipID = {{clipList.response.body.$[0].id}}
+@filename = {{clipList.response.body.$[0].filename}}
+GET {{host}}/clips/{{clipID}}
 
 ####
-# @name deleteGIF
-DELETE {{host}}/gifs/{{gifID}}
+# @name deleteClip
+DELETE {{host}}/clips/{{clipID}}
 
 ####
 # @name postFrameCache
@@ -44,17 +44,17 @@ POST {{host}}/frames/{{videoID}}
 DELETE {{host}}/frames/{{videoID}}
 
 ####
-# @name postGIFCache
-POST {{host}}/gifcache/{{videoID}}
+# @name postClipCache
+POST {{host}}/clipcache/{{videoID}}
 
 ####
-# @name deleteGIFCache
-DELETE {{host}}/gifcache/{{videoID}}
+# @name deleteClipCache
+DELETE {{host}}/clipcache/{{videoID}}
 
 ####
-# @name getGIFFile
+# @name getClipFile
 # Note: should come from public/static server
-GET {{host}}/gifs/{{filename}}
+GET {{host}}/clips/{{filename}}
 
 ####
 # @name getFrame

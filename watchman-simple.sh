@@ -6,8 +6,14 @@ __watchman-add() {
 
   # clear the log so the last run do not cause confusion
   printf '\n%.0s' {1..10} >> /usr/local/var/run/watchman/${USER}-state/log
-  
-  watchman -- trigger . "$WATCHNAME" '**/*.js' -- $@
+
+  # '**/*' results in argument list too long, so this must be restarted after updating node_modules
+  #watchman -- trigger . "$WATCHNAME" '**/*.js' -- $@
+  # this only seems to work when globbing
+  #watchman -- trigger . "$WATCHNAME" '**[^node_modules]/*.js' -- $@
+  # so being super specific
+  watchman -- trigger . "$WATCHNAME" 'src/*.js' 'src/*/*.js' -- $@
+
   watchman trigger-list .
   
   trap watchman-del EXIT

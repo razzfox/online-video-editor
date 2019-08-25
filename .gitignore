@@ -2,18 +2,18 @@
 
 # test media
 test/videos
-test/gifs
+test/clips
 
 # media storage
 public/frames
-public/gifCache
-public/gifs
+public/clipCache
+public/clips
 public/thumbnails
 public/videos
 
 # database storage
 videoDatabase.json
-gifDatabase.json
+clipDatabase.json
 metadataDatabase.json
 
 # dependencies
@@ -24,7 +24,7 @@ coverage
 
 # production
 build
-electron-gifs-*
+electron-video-editor-*
 
 # misc
 .DS_Store

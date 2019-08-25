@@ -14,7 +14,7 @@ npm install
 
 ####
 # Node module fix for android
-ytdl="/data/data/com.termux/files/home/electron-gifs/node_modules/youtube-dl"
+ytdl="/data/data/com.termux/files/home/electron-video-editor/node_modules/youtube-dl"
 test -d $ytdl && mkdir ${ytdl}/bin/
 test -d $ytdl && echo {\"path\":\"$(which youtube-dl)\"} > ${ytdl}/bin/details
 

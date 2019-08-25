@@ -48,9 +48,9 @@ console.log('Starting Video API')
 console.log('__dirname: ' + __dirname)
 
 
-// gifAPI
-const gifAPILocation = `http://localhost:${port}`
-const gifAPIRoute = '/gifs'
+// clipAPI
+const clipAPILocation = `http://localhost:${port}`
+const clipAPIRoute = '/clips'
 const cacheRoute = 'cache'
 
 
@@ -248,7 +248,7 @@ const downloadFromURL = (req, res) => {
       }
     })
 
-    // TODO: Call gifAPI to begin frame cache
+    // TODO: Call clipAPI to begin frame cache
     // get-state, expect either processing or done, and 404 possible
   })
 
@@ -437,9 +437,9 @@ app.delete('/videos/:videoID', deleteVideoFile)
 // Initialize express
 ////
 
-// gifAPI exports a router for this express instance
-const gifAPI = require('./gifAPI.js')
-app.use('/', gifAPI);
+// clipAPI exports a router for this express instance
+const clipAPI = require('./clipAPI.js')
+app.use('/', clipAPI);
 
 
 app.listen(port, () => console.log(`Express app listening on port ${port}!`))

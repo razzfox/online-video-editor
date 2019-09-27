@@ -149,10 +149,10 @@ class Clip extends Component {
   frameStepUnit = () => [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ].find(([maxLength, step]) => this.props.selectedVideoInfo.format.duration <= maxLength )[1]
 
   // takes an array of {id, filename} objects, custom attributes must be lowercase
-  ImageGrid = props => <div>{props.data.map((item, index) => <img key={index} onClick={props.onClick} data-item-id={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />)}</div>
+  ImageGrid = props => <ul>{props.data.map((item, index) => <li key={index}><img key={index} onClick={props.onClick} data-item-id={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />{(props.onDeleteClick) && <button onClick={props.onDeleteClick} value={(item.id)}>Delete clip</button>}</li>)}</ul>
 
   // takes an array of {id, title} objects
-  DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><button onClick={props.onClick} value={(item.id)}>Delete: {item.title}</button></li>)}</ul>
+  DeleteItemGrid = props => <ul>{props.data.map((item, index) => <li key={index}><img key={index} onClick={props.onClick} data-item-id={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />{(props.onDeleteClick) && <button onClick={props.onDeleteClick} value={(item.id)}>Delete clip</button>}</li>)}</ul>
 
   render() {
     return (
@@ -237,17 +237,13 @@ class Clip extends Component {
         <div className='section'>
           <h3>Available Clips</h3>
 
-          <this.ImageGrid id='availableClipList'
+          <this.DeleteItemGrid id='availableClipList'
             data={this.state.displayedClipList}
             srcURLBase={this.state.clipFileLocation}
             onClick={this.replaceClipSettings}
-          />
-
-          <this.DeleteItemGrid id='deleteClipList'
-            data={this.state.displayedClipList}
-            onClick={(ev) => {
-              this.deleteClip(ev)
-              ev.preventDefault()
+            onDeleteClick={e => {
+              this.deleteClip(e)
+              e.preventDefault()
             }}
           />
         </div>

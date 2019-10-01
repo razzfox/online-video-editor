@@ -48,12 +48,6 @@ console.log('Starting Video API')
 console.log('__dirname: ' + __dirname)
 
 
-// clipAPI
-const clipAPILocation = `http://localhost:${port}`
-const clipAPIRoute = '/clips'
-const cacheRoute = 'cache'
-
-
 ////
 // Initialize database and storage directories
 ////
@@ -63,7 +57,7 @@ const publicLocation = path.join(__dirname, '..', 'public')
 
 const videoDir = path.join(publicLocation, 'videos')
 const thumbnailDir = path.join(publicLocation, 'thumbnails')
-const videoDatabaseFile = path.join(__dirname, '..', 'videoDatabase.json')
+const videoDatabaseFile = path.join(publicLocation, 'database', 'videoDatabase.json')
 
 // initialize storage
 database.makeStorageDirs(videoDir, thumbnailDir)
@@ -366,7 +360,7 @@ app.use(function (req, res, next) {
 // Note: cacheControl and maxAge options only work if the cache-control header has not been set
 // so, only set no-store in a route AFTER this one, not before.
 // Note: although the spec requires max-age in seconds, the static function only accepts milliseconds.
-// NOTE: to use the first directory ('/public') in the URL, it must be the first argument, otherwise it mounts on '/'
+// NOTE: to use the first directory ('/public') in the URL, it must be the first argument of use(), otherwise it mounts on '/'
 app.use(express.static(publicLocation, { cacheControl: true, maxAge: '60000' }))
 
 // a middleware with no mount path; gets executed for every request to the app

@@ -4,7 +4,7 @@
 GET {{host}}/videos
 ####
 @videoID = {{videoList.response.body.$[0].id}}
-@thumbnailFilename = {{videoList.response.body.$[0].thumbnailFilename}}
+@videoFilename = {{videoList.response.body.$[0].filename}}
 GET {{host}}/videos/{{videoID}}
 ####
 GET {{host}}/videos/downloads/progress
@@ -21,4 +21,4 @@ GET {{host}}/videos/{{videoID}}/info
 
 ####
 # Public
-GET {{host}}/thumbnails/{{thumbnailFilename}}
+# GET {{host}}/videos/{{videoFilename}}

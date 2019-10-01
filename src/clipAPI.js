@@ -27,8 +27,8 @@ const videoDir = path.join(publicLocation, 'videos')
 const clipDir = path.join(publicLocation, 'clips')
 const clipCacheDir = path.join(publicLocation, 'clipCache')
 const frameCacheDir = path.join(publicLocation, 'frames')
-const clipDatabaseFile = path.join(__dirname, '..', 'clipDatabase.json')
-const metadataDatabaseFile = path.join(__dirname, '..', 'metadataDatabase.json')
+const clipDatabaseFile = path.join(publicLocation, 'database', 'clipDatabase.json')
+const metadataDatabaseFile = path.join(publicLocation, 'database', 'metadataDatabase.json')
 
 // initialize storage
 database.makeStorageDirs(clipDir, frameCacheDir)

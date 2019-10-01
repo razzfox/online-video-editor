@@ -309,8 +309,8 @@ const postClipCache = (req, res) => {
 }
 
 // TODO: Implement a count and a basic 'new' parameter
-// TODO: Does ffmpeg skip files that aready exist?
-// I dont think so, I will have to check for each before starting ffmpeg
+// TODO: Does ffmpeg skip files that already exist?
+// I don't think so, I will have to check for each before starting ffmpeg
 const postFrameCache = (req, res) => {
   console.log('videoID: ' + req.params.videoID)
 
@@ -552,7 +552,7 @@ const deleteFrameCache = (req, res) => {
 
 // TODO: Repair
 const repairClipList = (req, res) => {
-  // remove clip datbase items without existing files (or recreate the clips?)
+  // remove clip database items without existing files (or recreate the clips?)
 
   // enumerate all clip files that do not have a database item
 

@@ -301,7 +301,7 @@ const deleteVideoFile = (req, res) => {
     try {
       // delete files
       let videoPath = path.join(videoDir, videoItem.filename)
-      // Note: handrle error due to optional items (thumbnailFile)
+      // Note: handle error due to optional items (thumbnailFile)
       let thumbnailPath = path.join(thumbnailDir, videoItem.thumbnailFile) || null
       database.deleteFiles(videoPath, thumbnailPath)
     } catch (error) {}
@@ -354,7 +354,7 @@ app.use(function (req, res, next) {
 
 ////
 // React provides its own server for rapid development, but when compiled
-// for production, express can staticly serve the build folder files.
+// for production, express can statically serve the build folder files.
 
 // Catch-all middleware for static files in this folder (decodes URL internally)
 // Note: cacheControl and maxAge options only work if the cache-control header has not been set
@@ -417,7 +417,7 @@ app.post('/videos/downloads', downloadFromURL)
 
 app.delete('/videos/:videoID', deleteVideoFile)
 
-// Catch-all middleware, lexcially placed after all other routes
+// Catch-all middleware, lexically placed after all other routes
 // Note: regex is hard and express 4 does it incorrectly
 // See: https://github.com/expressjs/express/issues/2495
 // app.get('*', function (req, res) {

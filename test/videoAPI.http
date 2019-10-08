@@ -22,3 +22,9 @@ GET {{host}}/videos/{{videoID}}/info
 ####
 # Public
 # GET {{host}}/videos/{{videoFilename}}
+
+####
+POST {{host}}/videos/info
+Content-Type: application/json
+
+{"url": "https://www.youtube.com/watch?v=MMXAjhAopyg"}

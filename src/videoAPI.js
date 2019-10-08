@@ -124,6 +124,25 @@ const checkBodyForErrors = (req, res) => {
   }
 }
 
+const infoFromURL = (req, res) => {
+  checkBodyForErrors(req, res)
+
+  // youtube-dl
+  youtubedl.getInfo(req.body.url, [], (err, info) => {
+    if (err) throw err;
+
+    res.status(200).send(info).end()
+   
+    console.log('id:', );
+    console.log('title:', info.title);
+    console.log('url:', info.url);
+    console.log('thumbnail:', info.thumbnail);
+    console.log('description:', info.description);
+    console.log('filename:', info._filename);
+    console.log('format id:', info.format_id);
+  })
+}
+
 const downloadFromURL = (req, res) => {
   checkBodyForErrors(req, res)
 
@@ -414,6 +433,7 @@ app.get('/videos/:videoID', getVideoInfo)
 
 // Note: Only parses body when header Content-Type: application/json
 app.post('/videos/downloads', downloadFromURL)
+app.post('/videos/info', infoFromURL)
 
 app.delete('/videos/:videoID', deleteVideoFile)
 

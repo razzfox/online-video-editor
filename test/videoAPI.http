@@ -3,6 +3,9 @@
 # @name videoList
 GET {{host}}/videos
 ####
+# @name rootAppStaticHTML
+GET {{host}}/
+####
 @videoID = {{videoList.response.body.$[0].id}}
 @videoFilename = {{videoList.response.body.$[0].filename}}
 GET {{host}}/videos/{{videoID}}

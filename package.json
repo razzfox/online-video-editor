@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "electron": "^6.0.0",
-    "electron-packager": "^14.0.4",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-scripts": "^3.0.1"
+    "electron": "^7.0.0",
+    "electron-packager": "^14.0.6",
+    "react": "^16.11.0",
+    "react-dom": "^16.11.0",
+    "react-scripts": "^3.2.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,17 +15,17 @@
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^8.1.0",
     "gm": "^1.23.1",
-    "youtube-dl": "^2.0.0"
+    "youtube-dl": "^2.0.1"
   },
   "homepage": "./",
-  "main": "src/electron-main.js",
+  "main": "src/electron.js",
   "scripts": {
     "start": "electron .",
     "dev": "npm run react-start & bash watchman-simple.sh node src/videoAPI.js; npm run react-stop",
     "build": "npm run build-react && npm run build-electron",
     "build-electron": "electron-packager . --overwrite",
     "build-react": "react-scripts build",
-    "update-build": "react-scripts build && cp -r build src electron-video-editor-darwin-x64/electron-video-editor.app/Contents/Resources/app/",
+    "update-build": "react-scripts build && cp -r build src *-darwin-x64/*.app/Contents/Resources/app/",
     "test": "react-scripts test --env=jsdom",
     "react-start": "react-scripts start; npm run react-stop",
     "react-stop": "pkill -f 'start.js'"

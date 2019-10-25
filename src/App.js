@@ -102,7 +102,7 @@ class App extends Component {
       <div className='App'>
         <div className='App-header'>
           <h1 className='App-logo'><span role='img' aria-label='logo'>⭐</span></h1>
-          <h2>Razz's Online Video Editor ({process.env.NODE_ENV})</h2>
+          <h2>Online Video Editor (Concept)</h2>
         </div>
         <this.SelectVideo />
         <Clip {...this.state} />

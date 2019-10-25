@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import './Clip.css'
 import Video from './Video';
-import Preview from './Preview';
 
 
 class Clip extends Component {

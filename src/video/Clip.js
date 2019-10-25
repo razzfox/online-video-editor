@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import './Clip.css'
+import Video from './Video';
 import Preview from './Preview';
 
 
@@ -145,6 +146,8 @@ class Clip extends Component {
     this.setState({ ...item.clipSettings, width })
   }
 
+  setStart = start => this.setState({ start })
+
   // [maxLength, step] in seconds
   frameStepUnit = () => [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ].find(([maxLength, step]) => this.props.selectedVideoInfo.format.duration <= maxLength )[1]
 
@@ -159,12 +162,13 @@ class Clip extends Component {
       <div className='Clip'>
 
         <div className='section'>
-          <Preview
+          <Video
             backendLocation={this.props.backendLocation}
             selectedVideoID={this.props.selectedVideoID}
             selectedVideoInfo={this.props.selectedVideoInfo}
 
             start={this.state.start}
+            setStart={this.setStart}
             step={this.state.frameStepUnit}
             ImageGrid={this.ImageGrid}
           />
@@ -179,16 +183,16 @@ class Clip extends Component {
               value={this.state.start}
               onChange={ev => ev.target.value >= 0 && this.inputStateUpdate(ev)}
             />
-            <input
-              type='range'
-              name='start'
-              min={0}
-              max={this.props.selectedVideoInfo.format.duration}
-              step={this.state.frameStepUnit}
-              value={this.state.start}
-              onChange={this.inputStateUpdate}
-            />
           </label>
+          <input
+            type='range'
+            name='start'
+            min={0}
+            max={this.props.selectedVideoInfo.format.duration}
+            step={this.state.frameStepUnit}
+            value={this.state.start}
+            onChange={this.inputStateUpdate}
+          />
           <label>Length (seconds):
             <input
               type='number'
@@ -199,16 +203,16 @@ class Clip extends Component {
               value={this.state.length}
               onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev)}
             />
-            <input
-              type='range'
-              name='length'
-              min={0.5}
-              max={this.state.lengthMax}
-              step={0.1}
-              value={this.state.length}
-              onChange={this.inputStateUpdate}
-            />
           </label>
+          <input
+            type='range'
+            name='length'
+            min={0.5}
+            max={this.state.lengthMax}
+            step={0.1}
+            value={this.state.length}
+            onChange={this.inputStateUpdate}
+          />
           <label>Width (pixels):
             <input
               type='number'
@@ -217,16 +221,16 @@ class Clip extends Component {
               value={this.state.width}
               onChange={ev => ev.target.value > 0 && this.inputStateUpdate(ev)}
             />
-            <input
-              type='range'
-              name='width'
-              min={50}
-              max={500}
-              step={50}
-              value={this.state.width}
-              onChange={this.inputStateUpdate}
-            />
           </label>
+          <input
+            type='range'
+            name='width'
+            min={50}
+            max={500}
+            step={50}
+            value={this.state.width}
+            onChange={this.inputStateUpdate}
+          />
           <button id='createClipButton'
             onClick={(ev) => {
               this.putClip()

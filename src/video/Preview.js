@@ -37,12 +37,10 @@ class Preview extends Component {
       <div className='Preview'>
 
         <div className='section'>
-          <div className='flex-container'>
-            <this.props.ImageGrid id='frameStartList'
-              data={this.videoPreviewFrameTimestamps()}
-              srcURLBase={new URL(this.props.selectedVideoID + '/', this.state.frameCacheAPILocation)}
-            />
-          </div>
+          <this.props.ImageGrid id='frameStartList'
+            data={this.videoPreviewFrameTimestamps()}
+            srcURLBase={new URL(this.props.selectedVideoID + '/', this.state.frameCacheAPILocation)}
+          />
         </div>
 
       </div>

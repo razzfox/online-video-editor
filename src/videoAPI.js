@@ -100,6 +100,36 @@ const getVideoInfo = (req, res) => {
   return
 }
 
+const sendVideo = (req, res) => {
+  console.log('videoID: ' + req.params.videoID)
+
+  // Get video out of database
+  let videoItem = videoDatabase.get(req.params.videoID)
+
+  if (!!videoItem) {
+    // This is not in the database so that it is hidden from the user
+    let videoPath = path.join(videoDir, videoItem.filename)
+
+    // check for video file
+    if (fs.existsSync(videoPath)) {
+      console.log(JSON.stringify(videoPath))
+      // Video file sent
+      res.status(200).sendFile(videoPath)
+      return
+    } else {
+      console.log('Video file not found: ' + videoPath)
+      // TODO: Remove from database when file is missing?
+    }
+  }
+  ////
+  // Fall through
+  ////
+
+  // File does not exist
+  res.sendStatus(404).end()
+  return
+}
+
 const getVideoList = (req, res) => {
   console.log('sending database JSON')
   res.json(videoDatabase.all())
@@ -423,7 +453,7 @@ app.get('/videos/downloads/progress', getDownloadProgress)
 
 // get all videos as array
 app.get('/videos', getVideoList)
-app.get('/videos/:videoID', getVideoInfo)
+app.get('/videos/:videoID', sendVideo)
 
 // These can be set for individual routes
 // Only matches header Content-Type: application/json

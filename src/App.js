@@ -104,7 +104,6 @@ class App extends Component {
           <h1 className='App-logo'><span role='img' aria-label='logo'>⭐</span></h1>
           <h2>Razz's Online Video Editor ({process.env.NODE_ENV})</h2>
         </div>
-        {/* TODO: React-Router */}
         <this.SelectVideo />
         <Clip {...this.state} />
         <Download {...this.state}

@@ -10,21 +10,24 @@ class Video extends Component {
     }
   }
 
-// TODO: update start slider to match the mouse, but dont save until click
+  componentDidMount() {
+    // initial video position manually
+    this.video.currentTime = this.props.start
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     // Only reload this component when the video changes or has not yet been loaded    
-    if (this.video.readyState === 0 || this.props.selectedVideoID !== nextProps.selectedVideoID) {
+    if (this.video.readyState === 0 || nextProps.selectedVideoID !== this.props.selectedVideoID) {
       return true;
     }
 
     // update video position manually to reuse the same video element
-    this.video.currentTime = this.props.start
+    this.video.currentTime = nextProps.start
     return false;
   }
 
   setCurrentTime = event => {
     console.log('video.currentTime', event.target.currentTime)
-    // this.props.setStart({start: event.target.currentTime})
     this.props.setStart(event.target.currentTime)
   }
 
@@ -37,7 +40,7 @@ class Video extends Component {
         <video
           ref={ref=>this.video=ref}
           controls={false}
-          preload={true}
+          preload
           onMouseMove={event=>event.target.currentTime = event.target.duration * ((1 + event.clientX - event.target.offsetLeft) / event.target.offsetWidth)}
           // onMouseMove={event=>console.log((1 + event.clientX - event.target.offsetLeft) * 100 / event.target.offsetWidth)}
           // onTimeUpdate={event=>console.log(event)}

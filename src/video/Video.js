@@ -27,7 +27,8 @@ class Video extends Component {
   }
 
   setCurrentTime = event => {
-    console.log('video.currentTime', event.target.currentTime)
+    // console.log('video.currentTime', event.target.currentTime)
+    // TODO: indicate start time on video
     this.props.setStart(event.target.currentTime)
   }
 

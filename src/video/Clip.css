@@ -25,7 +25,8 @@
   width: 2em;
   height: 2em;
   border-radius: 50%;
-  background: #4CAF50;
+  border: 2px solid buttonface;
+  background: white;
   cursor: pointer;
 }
 .Clip input[type="range"]::-moz-range-thumb {

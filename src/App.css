@@ -25,3 +25,32 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.App select {
+  /* required for safari to accept any styles */
+  -webkit-appearance: none;
+  font-size: 1.5em;
+  width: 25em;
+  padding-left: 1em;
+  padding-right: 2.6em;
+  border: 2px solid buttonface;
+  border-radius: 2em;
+  min-height: 2em;
+  max-height: 4em;
+
+  /* remove arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* draw select arrow */
+  background: url("data:image/svg+xml;utf8,<svg viewBox='0 -7 30 30' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' fill='%23484848' d='M16.291 4.295a1 1 0 1 1 1.414 1.415l-8 7.995a1 1 0 0 1-1.414 0l-8-7.995a1 1 0 1 1 1.414-1.415l7.293 7.29 7.293-7.29z'></path></svg>")
+    no-repeat 100% 50%;
+  /* background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAA50lEQVR4Xt2MQWqEQBBFK4oLcaEbEQWNuNKFtuABJjeYHCVHyxHmBp0cIWsX3XvFTn0oQoOEYbbz4dHVVf9/ehIty3Jl0gf8KTIETdN0UUo5fvU4jndL4IFXMhcahsEwTtB93/9bghs8nt8E+75/bNtGwszcuq47lWCHm3gIIEtQ27bXpmkM4wRd1/VfCWbsvLtBhnxVVaXKsjSME0xRFIo57eEl0Qt5yvNcHcdx4zGTlcXj/4MgeFvX9ftcIGRZ9solnzzOjK8vDr9ba3/onpIkSeM41owTNHb0iKIoSsMw1AAzPa9+Ab+Vat2gkD80AAAAAElFTkSuQmCC)
+    no-repeat 95% 50%; */
+
+  background-color: lightgray;
+}
+
+.App select:active {
+  color: white;
+}

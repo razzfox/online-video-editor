@@ -23,34 +23,23 @@ body {
 }
 
 button {
+  outline: none;
+  
   font-size: 1.5em;
-
   width: 15em;
   height: 2em;
   margin-top: 2em;
   margin-bottom: 2em;
-
   border-radius: 1em;
   border-style: solid;
   background-color: lightgray;
 }
 
-select {
-  /* required for safari to accept any styles */
-  -webkit-appearance: none;
-  font-size: 1.5em;
-  padding-left: 0.2em;
-}
-
-pre, select, textarea {
+pre, textarea, select {
   outline: none;
 
   /* Wrap text */
   max-width: 75%;
   white-space: pre-wrap;
   word-wrap: break-word;
-}
-
-button, input {
-  outline: none;
 }

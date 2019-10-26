@@ -29,6 +29,9 @@ class Download extends Component {
       let videoItem = nextProps.availableVideoList.find(video => video.id === nextProps.selectedVideoID)
       return { infoBox: videoItem }
     }
+
+    // required to return something
+    return null
   }
 
   postDownloadURL() {

@@ -11,15 +11,13 @@ body {
   color: white;
 }
 
-.intro {
-  font-size: large;
-}
-
-.section {
+section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 2em;
+  margin-top: 1em;
+  border-bottom: 2px solid buttonface;
+  padding-bottom: 2em;
 }
 
 button {
@@ -28,9 +26,9 @@ button {
   font-size: 1.5em;
   width: 15em;
   height: 2em;
-  margin-top: 2em;
-  margin-bottom: 2em;
-  border-radius: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  border-radius: 2em;
   border-style: solid;
   background-color: lightgray;
 }

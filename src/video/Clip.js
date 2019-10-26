@@ -6,6 +6,7 @@ import Video from './Video';
 class Clip extends Component {
   constructor(props) {
     super(props)
+
     this.state = {
       clipAPILocation: new URL('clips/', props.backendLocation),
       // TODO: ClipFileLocation is different for web and electron clients
@@ -160,7 +161,7 @@ class Clip extends Component {
     return (
       <div className='Clip'>
 
-        <div className='section'>
+        <section>
           <Video
             backendLocation={this.props.backendLocation}
             selectedVideoID={this.props.selectedVideoID}
@@ -170,7 +171,7 @@ class Clip extends Component {
             step={this.state.frameStepUnit}
           />
 
-          <label>Start clip (seconds):
+          <label htmlFor='start'>Start clip (seconds):
             <input
               type='number'
               name='start'
@@ -190,7 +191,7 @@ class Clip extends Component {
             value={this.state.start}
             onChange={this.inputStateUpdate}
           />
-          <label>Length (seconds):
+          <label htmlFor='length'>Length (seconds):
             <input
               type='number'
               name='length'
@@ -210,7 +211,8 @@ class Clip extends Component {
             value={this.state.length}
             onChange={this.inputStateUpdate}
           />
-          <label>Width (pixels):
+
+          <label htmlFor='width'>Width (pixels):
             <input
               type='number'
               name='width'
@@ -233,9 +235,9 @@ class Clip extends Component {
               this.putClip()
               ev.preventDefault()
             }}>Create Clip</button>
-        </div>
+        </section>
 
-        <div className='section'>
+        <section>
           <h3>Available Clips</h3>
 
           <this.DeleteItemGrid id='availableClipList'
@@ -247,7 +249,7 @@ class Clip extends Component {
               e.preventDefault()
             }}
           />
-        </div>
+        </section>
       </div>
     )
   }

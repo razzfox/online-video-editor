@@ -91,26 +91,26 @@ class Download extends Component {
 
   render() {
     return <div className='Download'>
-      <h1 className='intro'>
-        Enter link to YouTube or other video
-      </h1>
-
-      <label id='downloadURLLabel'>
-        Video URL:
+      <section>
+        <h3>
+          Enter link to YouTube or other video
+        </h3>
         <textarea id='downloadURL'
           type='text'
           value={this.state.downloadURL}
           onChange={this.inputStateUpdate} />
-      </label>
-      <button id='downloadURLButton'
-        onClick={this.postDownloadURL}>
-        Download Video URL
-      </button>
+        <button id='downloadURLButton'
+          onClick={this.postDownloadURL}>
+          Download Video URL
+        </button>
 
-      <h3>Info</h3>
-      <pre id='infoBox'>{JSON.stringify(this.state.infoBox)}</pre>
-      <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
-    
+        <h3>Video Info</h3>
+        <pre id='infoBox'>{JSON.stringify(this.state.infoBox)}</pre>
+
+        <h3>Download Info</h3>
+        <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
+      </section>
+
       <button id='deleteVideoIDButton'
         onClick={this.deleteVideoID}>
         Delete Selected Video

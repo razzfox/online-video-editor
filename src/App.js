@@ -84,15 +84,15 @@ class App extends Component {
     this.setState({[stateVariable || event.target.name || event.target.id]: event.target.value}, callback)
   }
 
-  SelectVideo = () => <div className='section'>
-    <h1 className='intro'>Select Video</h1>
+  SelectVideo = () => <section>
+    <h3>Select Video</h3>
     <this.DropdownList
       id='selectedVideoID'
       data={this.state.availableVideoList}
       value={this.state.selectedVideoID}
       onChange={this.inputStateUpdate}
     />
-  </div>
+  </section>
 
   // takes an array of {id, title} objects
   DropdownList = props => <select {...props}>{props.data.map((item, index) => <option key={index} value={item.id}>{item.title}</option>)}</select>
@@ -100,10 +100,10 @@ class App extends Component {
   render() {
     return (
       <div className='App'>
-        <div className='App-header'>
+        <header>
           <h1 className='App-logo'><span role='img' aria-label='logo'>⭐</span></h1>
-          <h2>Online Video Editor (Concept)</h2>
-        </div>
+          <h1>Online Video Editor (Concept)</h1>
+        </header>
         <this.SelectVideo />
         <Clip {...this.state} />
         <Download {...this.state}

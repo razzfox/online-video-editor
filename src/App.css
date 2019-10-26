@@ -8,17 +8,12 @@
   animation: App-logo-spin infinite 20s linear;
 }
 
-.App-header {
+.App header {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  background-color: #222;
-  color: white;
-}
-
-.App-intro {
-  font-size: large;
+  border-bottom: 2px solid buttonface;
 }
 
 @keyframes App-logo-spin {
@@ -26,9 +21,14 @@
   to { transform: rotate(360deg); }
 }
 
+.App > section:first-of-type {
+  border-bottom: none;
+}
+
 .App select {
-  /* required for safari to accept any styles */
+  /* required for safari to accept any styles and remove arrow */
   -webkit-appearance: none;
+  -moz-appearance: none;
   font-size: 1.5em;
   width: 25em;
   padding-left: 1em;
@@ -37,10 +37,6 @@
   border-radius: 2em;
   min-height: 2em;
   max-height: 4em;
-
-  /* remove arrow */
-  -webkit-appearance: none;
-  -moz-appearance: none;
 
   /* draw select arrow */
   background: url("data:image/svg+xml;utf8,<svg viewBox='0 -7 30 30' xmlns='http://www.w3.org/2000/svg'><path fill-rule='evenodd' fill='%23484848' d='M16.291 4.295a1 1 0 1 1 1.414 1.415l-8 7.995a1 1 0 0 1-1.414 0l-8-7.995a1 1 0 1 1 1.414-1.415l7.293 7.29 7.293-7.29z'></path></svg>")

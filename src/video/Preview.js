@@ -36,12 +36,12 @@ class Preview extends Component {
     return (
       <div className='Preview'>
 
-        <div className='section'>
+        <section>
           <this.props.ImageGrid id='frameStartList'
             data={this.videoPreviewFrameTimestamps()}
             srcURLBase={new URL(this.props.selectedVideoID + '/', this.state.frameCacheAPILocation)}
           />
-        </div>
+        </section>
 
       </div>
     )

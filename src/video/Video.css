@@ -1,0 +1,16 @@
+.Video video {
+  border: 2px solid lightgray;
+  border-radius: 4px;
+  box-shadow: 
+    -2px -2px 0 buttonface,
+    2px -2px 0 buttonface,
+    -2px 2px 0 buttonface,
+    2px 2px 0 buttonface,
+    5px 5px 5px lightgray;
+
+  cursor: col-resize;
+  }
+
+/* .Video video:hover {
+  cursor: col-resize;
+} */

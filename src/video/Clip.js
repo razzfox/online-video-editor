@@ -165,11 +165,9 @@ class Clip extends Component {
             backendLocation={this.props.backendLocation}
             selectedVideoID={this.props.selectedVideoID}
             selectedVideoInfo={this.props.selectedVideoInfo}
-
             start={this.state.start}
             setStart={this.setStart}
             step={this.state.frameStepUnit}
-            ImageGrid={this.ImageGrid}
           />
 
           <label>Start clip (seconds):

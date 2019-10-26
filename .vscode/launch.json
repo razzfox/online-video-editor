@@ -35,7 +35,7 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Electron",
-      "program": "${workspaceFolder}/src/electron-main.js",
+      "program": "${workspaceFolder}/src/electron.js",
       "cwd": "${workspaceRoot}",
       "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron",
       "windows": {

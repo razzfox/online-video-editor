@@ -1,14 +1,16 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, session } = require('electron')
 
 // Spin up the express backend as a **side effect**
 const { videoAPI } = require('./videoAPI.js')
 
-// fix an error on my machine. maybe related to my brew setup or catalina?
-// Error: Invalid package ...electron.asar
-// this did not work: process.noAsar = true
-// solution:
-// cd public
-// ln -s /Volumes
+session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+  callback({
+    responseHeaders: {
+      ...details.responseHeaders,
+      'Content-Security-Policy': ['script-src \'self\' http://localhost:3080']
+    }
+  })
+})
 
 const isDev = process.env.NODE_ENV === 'development' || true
 

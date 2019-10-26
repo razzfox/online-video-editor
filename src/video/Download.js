@@ -5,8 +5,9 @@ import './Download.css';
 class Download extends Component {
   constructor(props) {
     super(props)
+
     this.state = {
-      downloadResponse: {},
+      infoBox: {},
       downloadProgressList: [],
       downloadURL: '',
 
@@ -21,6 +22,13 @@ class Download extends Component {
     // reassign context for borrowed functions
     this.fetchStateUpdate = props.fetchStateUpdate.bind(this)
     this.inputStateUpdate = props.inputStateUpdate.bind(this)
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState){
+    if(nextProps.selectedVideoID && nextProps.availableVideoList) {
+      let videoItem = nextProps.availableVideoList.find(video => video.id === nextProps.selectedVideoID)
+      return { infoBox: videoItem }
+    }
   }
 
   postDownloadURL() {
@@ -38,13 +46,13 @@ class Download extends Component {
     }).then(res => res.ok && res.json())
     .then(response => {
       console.log('downloadURL', response)
-      this.setState({downloadResponse: response})
+      this.setState({infoBox: response})
       // start monitoring download progress (only if list is empty, to prevent double requests)
       this.state.downloadProgressList.length === 0 && this.fetchStateUpdate(this.state.progressRoute, 'downloadProgressList', this.continueDownloadProgressList)
     })
     .catch(error => {
       console.error('downloadURL Error', error)
-      this.setState({downloadResponse: JSON.stringify(error)})
+      this.setState({infoBox: JSON.stringify(error)})
     })
   }
 
@@ -55,10 +63,10 @@ class Download extends Component {
     } else {
       // after all downloads finish, do not call this function again
       // update parent's videoList and selectedVideoID
-      this.props.updateAvailableVideoList(this.state.downloadResponse && this.state.downloadResponse.id)
+      this.props.updateAvailableVideoList(this.state.infoBox && this.state.infoBox.id)
       // reset download state
       this.setState({
-        downloadResponse: {},
+        infoBox: {},
       })
     }
   }
@@ -69,12 +77,12 @@ class Download extends Component {
     }).then(response => {
       console.log('deleteVideoID', response)
       const deletedItem = this.props.availableVideoList.find(video => video.id === this.props.selectedVideoID)
-      deletedItem && this.setState({downloadResponse: `Deleted ${deletedItem.title}`})
+      deletedItem && this.setState({infoBox: `Deleted ${deletedItem.title}`})
       this.props.updateAvailableVideoList()
     })
     .catch(error => {
       console.error('deleteVideoID Error', error)
-      this.setState({downloadResponse: JSON.stringify(error)})
+      this.setState({infoBox: JSON.stringify(error)})
     })
   }
 
@@ -96,8 +104,8 @@ class Download extends Component {
         Download Video URL
       </button>
 
-      <h3>Active Downloads</h3>
-      <pre id='downloadResponse'>{JSON.stringify(this.state.downloadResponse)}</pre>
+      <h3>Info</h3>
+      <pre id='infoBox'>{JSON.stringify(this.state.infoBox)}</pre>
       <pre id='downloadProgressList'>{JSON.stringify(this.state.downloadProgressList)}</pre>
     
       <button id='deleteVideoIDButton'

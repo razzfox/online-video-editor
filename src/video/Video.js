@@ -42,7 +42,7 @@ class Video extends Component {
           ref={ref=>this.video=ref}
           controls={false}
           preload
-          onMouseMove={event=>event.target.currentTime = event.target.duration * ((1 + event.clientX - event.target.offsetLeft) / event.target.offsetWidth)}
+          onMouseMove={event=>event.target.currentTime = event.target.duration * ((1 + event.clientX - event.target.offsetLeft) / event.target.offsetWidth) - 1}
           onMouseLeave={event=>event.target.currentTime = this.props.start}
           // onMouseMove={event=>console.log((1 + event.clientX - event.target.offsetLeft) * 100 / event.target.offsetWidth)}
           // onTimeUpdate={event=>console.log(event)}

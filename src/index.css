@@ -1,14 +1,46 @@
+/* css variables */
+:root {
+  /* lengths */
+  --round-corner: 1em;
+
+  /* alpha versions  */
+  /* --selected-blue: rgba(42, 171, 255, 1); */
+  /* --highlighted-blue: rgba(42, 171, 255, 0.6); */
+  /* --dark-selected-blue: rgba(42, 171, 255, 0.3); */
+
+  /* colors */
+  --selected-blue: rgb(42, 171, 255);
+  --highlighted-blue: rgb(106, 203, 255);
+
+  --white: rgb(255, 255, 255);
+  --almost-white: rgb(238, 238, 238);
+  --mid-white: rgb(190, 190, 190);
+  --dull-white: rgb(140, 140, 140);
+  --almost-black: rgb(17, 17, 17);
+
+  --mid-gray: #444;
+  --light-gray: #666;
+
+  /* transparent so that background color shines through */
+  --almost-transparent: rgba(0, 0, 0, 0.1);
+  --mid-transparent: rgb(255, 255, 255, 0.4);
+  --light-transparent: rgba(255, 255, 255, 0.7);
+
+  /* dark mode colors */
+  --dark-selected-blue: rgb(39, 91, 118);
+  --dark-highlighted-blue: rgb(22, 122, 177);
+  --dark-gray: rgb(56, 56, 56);
+
+  --dark-almost-transparent: rgba(100, 100, 100, 0.1);
+  --dark-light-transparent: rgba(255, 255, 255, 0.15);
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-}
-
-.header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+  background-color: var(--almost-white);
+  color: var(--almost-black);
 }
 
 section {
@@ -30,7 +62,23 @@ button {
   margin-bottom: 1em;
   border-radius: 2em;
   border-style: solid;
-  background-color: lightgray;
+  background-color: white;
+  font-weight: 300;
+
+  box-shadow: 2px 2px 2px lightgray;
+
+  /* background-color: var(--light-gray);
+  border-radius: 2em;
+  color: var(--almost-white);
+  font-weight: bold;
+  font-size: larger;
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--mid-transparent); */
+}
+
+button:active {
+  color: var(--highlighted-blue);
 }
 
 pre, textarea, select {

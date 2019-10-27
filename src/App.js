@@ -102,7 +102,7 @@ class App extends Component {
       <div className='App'>
         <header>
           <h1 className='App-logo'><span role='img' aria-label='logo'>⭐</span></h1>
-          <h1>Online Video Editor (Concept)</h1>
+          <h1>Online Video Editor <sub>Concept</sub></h1>
         </header>
         <this.SelectVideo />
         <Clip {...this.state} />

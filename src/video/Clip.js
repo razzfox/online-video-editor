@@ -149,7 +149,7 @@ class Clip extends Component {
   setStart = start => this.setState({ start })
 
   // [maxLength, step] in seconds
-  frameStepUnit = () => [ [10, 0.1], [60, 1], [180, 10], [Infinity, 50] ].find(([maxLength, step]) => this.props.selectedVideoInfo.format.duration <= maxLength )[1]
+  frameStepUnit = () => [ [10, 0.1], [60, 1], [360, 10], [Infinity, 50] ].find(([maxLength, step]) => this.props.selectedVideoInfo.format.duration <= maxLength )[1]
 
   // takes an array of {id, filename} objects, custom attributes must be lowercase
   ImageGrid = props => <ul>{props.data.map((item, index) => <li key={index}><img key={index} onClick={props.onClick} data-item-id={item.id} alt={index} src={new URL(item.filename, props.srcURLBase)} />{(props.onDeleteClick) && <button onClick={props.onDeleteClick} value={(item.id)}>Delete clip</button>}</li>)}</ul>

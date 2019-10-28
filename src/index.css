@@ -89,3 +89,12 @@ pre, textarea, select {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+/* WARNING: this file must be loaded last to replace all other rules */
+/* PLACED LAST IN ORDER TO OVERRIDE ALL OTHER RULES */
+@media (max-device-width: 640px) and (orientation: portrait) {
+  /* prevent scrolling */
+  html {
+    font-size: 0.5em;
+  }
+}

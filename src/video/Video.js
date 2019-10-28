@@ -41,13 +41,18 @@ class Video extends Component {
         <video
           ref={ref=>this.video=ref}
           controls={false}
-          preload
+          preload={true}
+          muted={true}
+          playsInline={true}
+          onTouchEnd={event=>event.target.play() && event.target.pause()}
           onMouseMove={event=>event.target.currentTime = event.target.duration * ((1 + event.clientX - event.target.offsetLeft) / event.target.offsetWidth) - 1}
           onMouseLeave={event=>event.target.currentTime = this.props.start}
           // onMouseMove={event=>console.log((1 + event.clientX - event.target.offsetLeft) * 100 / event.target.offsetWidth)}
           // onTimeUpdate={event=>console.log(event)}
           onClick={this.setCurrentTime}
-          src={new URL('videos/' + this.props.selectedVideoID, this.props.backendLocation)} type={type} >
+          // poster={}
+          src={new URL('videos/' + this.props.selectedVideoID, this.props.backendLocation)}
+          type={type} >
           Your browser does not support the video tag.
         </video>
 

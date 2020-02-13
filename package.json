@@ -2,9 +2,12 @@
   "name": "electron-video-editor",
   "version": "0.1.0",
   "private": true,
-  "devDependencies": {
+  "optionalDependencies": {
     "electron": "^7.0.0",
     "electron-packager": "^14.0.6",
+    "serve": "^11.3.0"
+  },
+  "devDependencies": {
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-scripts": "^3.2.0"
@@ -21,6 +24,8 @@
   "main": "src/electron.js",
   "scripts": {
     "start": "electron .",
+    "backend": "node src/videoAPI.js",
+    "serve": "npm run backend & serve -l 3001 --no-clipboard --ssl-cert ../keys/fullchain.pem --ssl-key ../keys/privkey.pem build",
     "dev": "npm run react-start & bash watchman-simple.sh node src/videoAPI.js; npm run react-stop",
     "build": "npm run build-react && npm run build-electron",
     "build-electron": "electron-packager . --overwrite",

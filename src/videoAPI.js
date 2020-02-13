@@ -12,6 +12,14 @@
 const fs = require('fs-extra')
 const path = require('path')
 
+const https = require('https')
+const http = require('http')
+
+const privateKey = fs.readFileSync('../keys/privkey.pem')
+const certificate = fs.readFileSync('../keys/fullchain.pem')
+
+const credentials = {key: privateKey, cert: certificate}
+
 const database = require('./database.js')
 
 const youtubedl = require('youtube-dl')
@@ -19,7 +27,7 @@ const youtubedl = require('youtube-dl')
 // Express info: https://expressjs.com/en/starter/faq.html
 const express = require('express')
 const cors = require('cors')
-// const app = express()
+//const app = express.createServer(credentials)
 const app = module.exports = express()
 const port = 3080
 
@@ -486,7 +494,9 @@ const clipAPI = require('./clipAPI.js')
 app.use('/', clipAPI);
 
 
-app.listen(port, () => console.log(`Express app listening on port ${port}!`))
+//app.listen(port, () => console.log(`Express app listening on port ${port}!`))
+
+https.createServer(credentials, app).listen(port)
 
 ////
 // Export this as a module for use inside an Electron app
